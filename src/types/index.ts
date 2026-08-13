@@ -45,7 +45,7 @@ export interface Booking {
   customer: BookingCustomer
   vehicleTypeId: ID
   vehicleDetails: string
-  serviceId: ID
+  serviceIds: ID[]
   date: string
   time: string
   location: string
@@ -170,4 +170,33 @@ export interface UserSubscription {
   bookingsUsed: number
   bookingsLimit: number | null
   renewsAt: string
+}
+
+/* ----------------------------------------------------------------- */
+/*  Quotation types                                                   */
+/* ----------------------------------------------------------------- */
+
+export interface QuoteItem {
+  id: string
+  quantity: number
+  description: string
+  unitPrice: number
+  taxable: boolean
+}
+
+export interface Quote {
+  id: string
+  bookingId: string
+  quotationNumber: string
+  date: string
+  validUntil: string
+  preparedBy: string
+  items: QuoteItem[]
+  subtotal: number
+  salesTaxRate: number
+  otherFees: number
+  total: number
+  comments: string
+  status: 'draft' | 'sent' | 'accepted' | 'rejected'
+  createdAt: string
 }

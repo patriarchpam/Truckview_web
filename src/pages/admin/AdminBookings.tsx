@@ -7,6 +7,8 @@ import { formatShortDate, formatTime, formatPrice } from '../../utils/format'
 import { toast } from 'sonner'
 import type { BookingStatus } from '../../types'
 
+import { AdminQuoteModal } from '../../components/admin/AdminQuoteModal'
+
 const statusColors: Record<string, 'warning' | 'info' | 'success' | 'danger' | 'default'> = {
   pending: 'warning', confirmed: 'info', 'in-progress': 'info', completed: 'success', cancelled: 'danger',
 }
@@ -21,11 +23,13 @@ export function AdminBookings() {
   const { bookings, services, vehicleTypes, updateBookingStatus } = useStore()
   const [filter, setFilter] = useState<string>('all')
   const [selected, setSelected] = useState<string | null>(null)
+  const [quoteModalOpen, setQuoteModalOpen] = useState(false)
 
   const filtered = filter === 'all' ? bookings : bookings.filter((b) => b.status === filter)
   const sorted = [...filtered].sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`))
   const selectedBooking = bookings.find((b) => b.id === selected)
-  const svc = selectedBooking ? services.find((s) => s.id === selectedBooking.serviceId) : undefined
+  const svcs = selectedBooking ? services.filter((s) => (selectedBooking.serviceIds || []).includes(s.id)) : []
+  const selectedSvcNames = svcs.map(s => s.name).join(', ')
 
   const handleStatusChange = async (id: string, status: BookingStatus) => {
     try {
@@ -33,6 +37,10 @@ export function AdminBookings() {
       toast.success(`Booking updated to ${status}`)
       setSelected(null)
     } catch { toast.error('Failed to update') }
+  }
+
+  const openQuoteModal = () => {
+    setQuoteModalOpen(true)
   }
 
   return (
@@ -63,7 +71,7 @@ export function AdminBookings() {
             </thead>
             <tbody className="divide-y divide-line">
               {sorted.map((b) => {
-                const s = services.find((sv) => sv.id === b.serviceId)
+                const sNames = services.filter((sv) => (b.serviceIds || []).includes(sv.id)).map(s => s.name).join(', ')
                 return (
                   <tr key={b.id} className="hover:bg-surface-2 transition-colors">
                     <td className="px-4 py-3 font-medium text-ink">{b.reference}</td>
@@ -71,7 +79,9 @@ export function AdminBookings() {
                       <div className="text-ink">{b.customer.name}</div>
                       <div className="text-xs text-muted">{b.customer.phone}</div>
                     </td>
-                    <td className="px-4 py-3 text-muted">{s?.name}</td>
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-ink line-clamp-1">{sNames || 'Unknown'}</div>
+                    </td>
                     <td className="px-4 py-3">
                       <div className="text-ink">{formatShortDate(b.date)}</div>
                       <div className="text-xs text-muted">{formatTime(b.time)}</div>
@@ -90,7 +100,7 @@ export function AdminBookings() {
       </div>
 
       {/* Detail Modal */}
-      <Modal open={!!selectedBooking} onClose={() => setSelected(null)} title={selectedBooking?.reference ?? ''} description={svc?.name}>
+      <Modal open={!!selectedBooking} onClose={() => setSelected(null)} title={selectedBooking?.reference ?? ''} description={selectedSvcNames}>
         {selectedBooking && (
           <div className="space-y-4 text-sm">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -107,6 +117,13 @@ export function AdminBookings() {
                 <p className="text-ink-soft">{selectedBooking.notes}</p>
               </div>
             )}
+            
+            <div className="flex items-center gap-2 pt-2 pb-2 border-t border-line mt-4">
+              <Button size="sm" variant="outline" className="w-full text-accent-600 border-accent-200 hover:bg-accent-50" onClick={openQuoteModal}>
+                View / Generate Quote
+              </Button>
+            </div>
+
             {nextStatus[selectedBooking.status] && (
               <div className="flex gap-2 pt-2">
                 {nextStatus[selectedBooking.status].map((st) => (
@@ -122,6 +139,10 @@ export function AdminBookings() {
           </div>
         )}
       </Modal>
+
+      {selectedBooking && (
+        <AdminQuoteModal open={quoteModalOpen} onClose={() => setQuoteModalOpen(false)} booking={selectedBooking} />
+      )}
     </div>
   )
 }

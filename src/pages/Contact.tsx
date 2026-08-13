@@ -94,6 +94,20 @@ export function Contact() {
             </form>
           </motion.div>
         </div>
+
+        {/* Map */}
+        <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.3, duration: 0.5 }} className="mt-12 overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
+          <iframe
+            width="100%"
+            height="400"
+            style={{ border: 0 }}
+            loading="lazy"
+            allowFullScreen
+            referrerPolicy="no-referrer-when-downgrade"
+            src="https://www.google.com/maps?q=Deck+One+Apartments,+Karu,+Abuja&output=embed"
+            title="Location Map"
+          ></iframe>
+        </motion.div>
       </div>
     </div>
   )

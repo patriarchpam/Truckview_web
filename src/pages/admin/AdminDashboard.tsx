@@ -66,12 +66,12 @@ export function AdminDashboard() {
         ) : (
           <div className="divide-y divide-line">
             {upcoming.map((b) => {
-              const svc = services.find((s) => s.id === b.serviceId)
+              const svcNames = services.filter((s) => (b.serviceIds || []).includes(s.id)).map(s => s.name).join(', ')
               return (
                 <div key={b.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-surface-2 transition-colors">
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-ink truncate">{b.customer.name}</div>
-                    <div className="text-xs text-muted truncate">{svc?.name} · {b.vehicleDetails}</div>
+                    <div className="text-xs text-muted truncate">{svcNames || 'Unknown'} · {b.vehicleDetails}</div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-xs font-medium text-ink">{formatShortDate(b.date)}</div>

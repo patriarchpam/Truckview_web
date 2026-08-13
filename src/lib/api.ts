@@ -1,6 +1,5 @@
 import { getDay } from 'date-fns'
-
-import * as seed from '../data/mockData'
+import { supabase } from './supabase'
 import type {
   Availability,
   Booking,
@@ -8,6 +7,8 @@ import type {
   BookingStatus,
   Customer,
   ID,
+  Quote,
+  QuoteItem,
   Service,
   Settings,
   SiteContent,
@@ -18,39 +19,9 @@ import type {
   Weekday,
 } from '../types'
 import { fromISODate, toISODate } from '../utils/format'
+import * as seed from '../data/mockData' // fallback for singletons
 
-const WEEKDAYS: Weekday[] = [
-  'sunday', 'monday', 'tuesday', 'wednesday',
-  'thursday', 'friday', 'saturday',
-]
-
-interface Store {
-  vehicleTypes: VehicleType[]
-  services: Service[]
-  bookings: Booking[]
-  availability: Availability
-  content: SiteContent
-  settings: Settings
-  subscription: UserSubscription
-}
-
-const store: Store = {
-  vehicleTypes: seed.vehicleTypes.map((v) => ({ ...v })),
-  services: seed.services.map((s) => ({ ...s })),
-  bookings: seed.bookings.map((b) => ({ ...b })),
-  availability: JSON.parse(JSON.stringify(seed.availability)) as Availability,
-  content: JSON.parse(JSON.stringify(seed.siteContent)) as SiteContent,
-  settings: JSON.parse(JSON.stringify(seed.settings)) as Settings,
-  subscription: {
-    tier: 'free',
-    bookingsUsed: 1,
-    bookingsLimit: 3,
-    renewsAt: '2026-09-13',
-  },
-}
-
-const latency = (ms = 260) => new Promise((resolve) => setTimeout(resolve, ms))
-const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T
+const WEEKDAYS: Weekday[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
 
 export class SlotUnavailableError extends Error {
   constructor() {
@@ -66,12 +37,6 @@ export class BookingLimitError extends Error {
   }
 }
 
-function nextReference(): string {
-  const year = new Date().getFullYear()
-  const sequence = store.bookings.length + 1
-  return `TV-${year}-${String(sequence).padStart(4, '0')}`
-}
-
 function weekdayOf(dateISO: string): Weekday {
   return WEEKDAYS[getDay(fromISODate(dateISO))]
 }
@@ -80,237 +45,391 @@ function withinHours(time: string, start: string, end: string): boolean {
   return time >= start && time < end
 }
 
-function bookedCount(dateISO: string, time: string): number {
-  return store.bookings.filter(
-    (b) => b.date === dateISO && b.time === time && b.status !== 'cancelled',
-  ).length
-}
-
-function isBlocked(dateISO: string, time: string): boolean {
-  return store.availability.blockedSlots.some(
-    (s) => s.date === dateISO && s.time === time,
-  )
-}
-
-function isTooSoon(dateISO: string, time: string): boolean {
+function isTooSoon(dateISO: string, time: string, noticeHours: number): boolean {
   const now = new Date()
   const target = fromISODate(dateISO)
   const [h, m] = time.split(':').map(Number)
   target.setHours(h, m, 0, 0)
-  const noticeMs = store.availability.noticeHours * 60 * 60 * 1000
-  return target.getTime() - now.getTime() < noticeMs
+  return target.getTime() - now.getTime() < noticeHours * 60 * 60 * 1000
 }
 
-function computeSlots(dateISO: string): SlotAvailability[] {
-  const dayConfig = store.availability.businessHours[weekdayOf(dateISO)]
-  if (!dayConfig.open || store.availability.blockedDates.includes(dateISO)) {
-    return []
-  }
-  return store.availability.slotTimes
-    .filter((time) => withinHours(time, dayConfig.start, dayConfig.end))
-    .map((time) => {
-      if (isTooSoon(dateISO, time))
-        return { time, available: false, reason: 'past' as const }
-      if (isBlocked(dateISO, time))
-        return { time, available: false, reason: 'blocked' as const }
-      if (bookedCount(dateISO, time) >= store.availability.maxPerSlot)
-        return { time, available: false, reason: 'booked' as const }
-      return { time, available: true }
-    })
-}
-
-function buildCustomers(): Customer[] {
-  const map = new Map<string, Customer>()
-  const ordered = [...store.bookings].sort((a, b) =>
-    a.date < b.date ? -1 : 1,
-  )
-  ordered.forEach((booking) => {
-    const key = booking.customer.email.toLowerCase()
-    const existing = map.get(key)
-    if (existing) {
-      existing.bookingCount += 1
-      existing.lastBookingDate = booking.date
-      if (!existing.vehicleTypeIds.includes(booking.vehicleTypeId)) {
-        existing.vehicleTypeIds.push(booking.vehicleTypeId)
-      }
-      return
-    }
-    map.set(key, {
-      id: key,
-      name: booking.customer.name,
-      phone: booking.customer.phone,
-      email: booking.customer.email,
-      vehicleTypeIds: [booking.vehicleTypeId],
-      bookingCount: 1,
-      lastBookingDate: booking.date,
-    })
-  })
-  return [...map.values()].sort((a, b) => a.name.localeCompare(b.name))
+function nextReference(currentCount: number): string {
+  const year = new Date().getFullYear()
+  const sequence = currentCount + 1
+  return `TV-${year}-${String(sequence).padStart(4, '0')}`
 }
 
 export const api = {
   async getBootstrap() {
-    await latency()
+    const [{ data: services }, { data: vehicleTypes }, { data: bookings }] = await Promise.all([
+      supabase.from('services').select('*'),
+      supabase.from('vehicle_types').select('*'),
+      supabase.from('bookings').select('*, profiles(name, phone, email)'),
+    ])
+
+    const availability = seed.availability
+    const content = seed.siteContent
+    const settings = seed.settings
+
+    const transformedBookings: Booking[] = (bookings || []).map((b: any) => ({
+      id: b.id,
+      reference: b.reference,
+      customer: {
+        name: b.profiles?.name || 'Unknown',
+        phone: b.profiles?.phone || '',
+        email: b.profiles?.email || '',
+      },
+      vehicleTypeId: b.vehicle_type_id,
+      vehicleDetails: b.vehicle_details,
+      serviceIds: b.service_id ? b.service_id.split(',') : [],
+      date: b.date,
+      time: b.time,
+      location: b.location,
+      notes: b.notes,
+      status: b.status,
+      createdAt: b.created_at,
+    }))
+
+    const transformedVehicleTypes: VehicleType[] = (vehicleTypes || []).map((v: any) => ({
+      id: v.id,
+      slug: v.id, // Generate slug fallback
+      name: v.name,
+      description: v.description,
+      image: v.image,
+      active: v.active,
+    }))
+
+    const transformedServices: Service[] = (services || []).map((s: any) => ({
+      id: s.id,
+      slug: s.id, // Generate slug fallback
+      name: s.name,
+      description: s.description,
+      price: s.price,
+      duration: s.duration,
+      details: s.details,
+      image: s.image,
+      vehicleTypeIds: s.vehicle_type_ids, // Mapped from snake_case
+      active: s.active,
+    }))
+
     return {
-      vehicleTypes: clone(store.vehicleTypes),
-      services: clone(store.services),
-      bookings: clone(store.bookings),
-      availability: clone(store.availability),
-      content: clone(store.content),
-      settings: clone(store.settings),
-      customers: buildCustomers(),
+      vehicleTypes: transformedVehicleTypes,
+      services: transformedServices,
+      bookings: transformedBookings,
+      availability,
+      content,
+      settings,
+      customers: await api.getCustomers(),
     }
   },
 
   async updateContent(content: SiteContent): Promise<SiteContent> {
-    await latency(200)
-    store.content = clone(content)
-    return clone(store.content)
+    return content 
   },
 
   async updateSettings(settings: Settings): Promise<Settings> {
-    await latency(200)
-    store.settings = clone(settings)
-    store.availability.maxPerSlot = settings.booking.maxPerSlot
-    store.availability.noticeHours = settings.booking.noticeHours
-    return clone(store.settings)
+    return settings 
   },
 
   async saveService(service: Service): Promise<Service[]> {
-    await latency(200)
-    const index = store.services.findIndex((s) => s.id === service.id)
-    if (index >= 0) store.services[index] = clone(service)
-    else store.services.push(clone(service))
-    return clone(store.services)
+    const id = service.id || `srv-${Date.now()}`
+    const { error } = await supabase.from('services').upsert({
+      id,
+      name: service.name,
+      description: service.description,
+      price: service.price,
+      duration: service.duration,
+      details: service.details,
+      image: service.image,
+      vehicle_type_ids: service.vehicleTypeIds,
+      active: service.active,
+    })
+    if (error) throw new Error(error.message)
+    const { data } = await supabase.from('services').select('*')
+    return data as Service[] || []
   },
 
   async deleteService(id: ID): Promise<Service[]> {
-    await latency(200)
-    store.services = store.services.filter((s) => s.id !== id)
-    return clone(store.services)
+    await supabase.from('services').delete().eq('id', id)
+    const { data } = await supabase.from('services').select('*')
+    return data as Service[] || []
   },
 
   async saveVehicleType(vehicleType: VehicleType): Promise<VehicleType[]> {
-    await latency(200)
-    const index = store.vehicleTypes.findIndex((v) => v.id === vehicleType.id)
-    if (index >= 0) store.vehicleTypes[index] = clone(vehicleType)
-    else store.vehicleTypes.push(clone(vehicleType))
-    return clone(store.vehicleTypes)
+    const id = vehicleType.id || `vt-${Date.now()}`
+    const payload = { ...vehicleType, id }
+    const { error } = await supabase.from('vehicle_types').upsert(payload)
+    if (error) throw new Error(error.message)
+    const { data } = await supabase.from('vehicle_types').select('*')
+    return data as VehicleType[] || []
   },
 
   async deleteVehicleType(id: ID): Promise<VehicleType[]> {
-    await latency(200)
-    store.vehicleTypes = store.vehicleTypes.filter((v) => v.id !== id)
-    return clone(store.vehicleTypes)
+    await supabase.from('vehicle_types').delete().eq('id', id)
+    const { data } = await supabase.from('vehicle_types').select('*')
+    return data as VehicleType[] || []
   },
 
   async getSlots(dateISO: string): Promise<SlotAvailability[]> {
-    await latency(180)
-    return computeSlots(dateISO)
+    const availability = seed.availability
+    const dayConfig = availability.businessHours[weekdayOf(dateISO)]
+    
+    if (!dayConfig.open || availability.blockedDates.includes(dateISO)) return []
+
+    const { data: bookings } = await supabase.from('bookings').select('time').eq('date', dateISO).neq('status', 'cancelled')
+    const bookedTimes = (bookings || []).map((b) => b.time)
+    const countTime = (time: string) => bookedTimes.filter((t) => t === time).length
+
+    return availability.slotTimes
+      .filter((time) => withinHours(time, dayConfig.start, dayConfig.end))
+      .map((time) => {
+        if (isTooSoon(dateISO, time, availability.noticeHours)) return { time, available: false, reason: 'past' as const }
+        if (availability.blockedSlots.some(s => s.date === dateISO && s.time === time)) return { time, available: false, reason: 'blocked' as const }
+        if (countTime(time) >= availability.maxPerSlot) return { time, available: false, reason: 'booked' as const }
+        return { time, available: true }
+      })
   },
 
   async updateAvailability(availability: Availability): Promise<Availability> {
-    await latency(200)
-    store.availability = clone(availability)
-    return clone(store.availability)
+    return availability 
   },
 
-  async createBooking(
-    draft: BookingDraft,
-  ): Promise<{ booking: Booking; bookings: Booking[] }> {
-    await latency(500)
+  async createBooking(draft: BookingDraft): Promise<{ booking: Booking; bookings: Booking[] }> {
+    // 1. Get or create profile
+    let profileId: string
+    const { data: existingProfile } = await supabase.from('profiles').select('id').eq('email', draft.customer.email.toLowerCase()).single()
+    
+    if (existingProfile) {
+      profileId = existingProfile.id
+    } else {
+      // Create new profile without Auth required
+      const { data: newProfile, error: profileError } = await supabase
+        .from('profiles')
+        .insert({ name: draft.customer.name, email: draft.customer.email.toLowerCase(), phone: draft.customer.phone })
+        .select()
+        .single()
+      
+      if (profileError || !newProfile) throw new Error('Failed to create customer profile. Have you run the updated schema migration?')
+      profileId = newProfile.id
+    }
 
-    // Check subscription limit
-    if (
-      store.subscription.bookingsLimit !== null &&
-      store.subscription.bookingsUsed >= store.subscription.bookingsLimit
-    ) {
+    // 2. Check subscription (mock for now on frontend, usually backend checked)
+    const { data: sub } = await supabase.from('subscriptions').select('*').eq('profile_id', profileId).single()
+    const limit = sub?.bookings_limit ?? 3 // Default free limit
+    const used = sub?.bookings_used ?? 0
+    if (limit !== null && used >= limit) {
       throw new BookingLimitError()
     }
 
-    const slot = computeSlots(draft.date).find((s) => s.time === draft.time)
+    // 3. Verify slot
+    const slots = await api.getSlots(draft.date)
+    const slot = slots.find((s) => s.time === draft.time)
     if (!slot || !slot.available) throw new SlotUnavailableError()
 
-    const booking: Booking = {
-      ...clone(draft),
-      id: `bk-${Date.now()}`,
-      reference: nextReference(),
+    // 4. Insert booking
+    const { count } = await supabase.from('bookings').select('*', { count: 'exact', head: true })
+    const ref = nextReference(count || 0)
+    const bookingId = `bk-${Date.now()}`
+
+    const { error: bookingError } = await supabase.from('bookings').insert({
+      id: bookingId,
+      reference: ref,
+      profile_id: profileId,
+      vehicle_type_id: draft.vehicleTypeId,
+      vehicle_details: draft.vehicleDetails,
+      service_id: draft.serviceIds.join(','),
+      date: draft.date,
+      time: draft.time,
+      location: draft.location,
+      notes: draft.notes,
       status: 'pending',
-      createdAt: toISODate(new Date()),
+    })
+
+    if (bookingError) throw new Error(bookingError.message)
+
+    // 5. Update subscription usage
+    if (sub) {
+      await supabase.from('subscriptions').update({ bookings_used: used + 1 }).eq('profile_id', profileId)
+    } else {
+      await supabase.from('subscriptions').insert({ profile_id: profileId, tier: 'free', bookings_used: 1, bookings_limit: 3, renews_at: toISODate(new Date()) })
     }
-    store.bookings.push(booking)
-    store.subscription.bookingsUsed += 1
-    return { booking: clone(booking), bookings: clone(store.bookings) }
+
+    // Reload all bookings to return fresh state
+    const { bookings } = await this.getBootstrap()
+    const newBooking = bookings.find(b => b.id === bookingId)!
+    
+    return { booking: newBooking, bookings }
   },
 
   async updateBookingStatus(id: ID, status: BookingStatus): Promise<Booking[]> {
-    await latency(200)
-    const booking = store.bookings.find((b) => b.id === id)
-    if (booking) booking.status = status
-    return clone(store.bookings)
+    await supabase.from('bookings').update({ status }).eq('id', id)
+    const { bookings } = await this.getBootstrap()
+    return bookings
   },
 
   async rescheduleBooking(id: ID, date: string, time: string): Promise<Booking[]> {
-    await latency(250)
-    const slot = computeSlots(date).find((s) => s.time === time)
-    const takenByOther = store.bookings.some(
-      (b) => b.id !== id && b.date === date && b.time === time && b.status !== 'cancelled',
-    )
-    if (takenByOther || (!slot?.available && slot?.reason !== 'past')) {
-      throw new SlotUnavailableError()
-    }
-    const booking = store.bookings.find((b) => b.id === id)
-    if (booking) {
-      booking.date = date
-      booking.time = time
-    }
-    return clone(store.bookings)
+    await supabase.from('bookings').update({ date, time }).eq('id', id)
+    const { bookings } = await this.getBootstrap()
+    return bookings
   },
 
   async findBookingByReference(reference: string): Promise<Booking | null> {
-    await latency(300)
-    const match = store.bookings.find(
-      (b) => b.reference.toLowerCase() === reference.trim().toLowerCase(),
-    )
-    return match ? clone(match) : null
+    const { data } = await supabase.from('bookings').select('*, profiles(name, phone, email)').ilike('reference', reference).single()
+    if (!data) return null
+    return {
+      id: data.id,
+      reference: data.reference,
+      customer: {
+        name: data.profiles?.name || 'Unknown',
+        phone: data.profiles?.phone || '',
+        email: data.profiles?.email || '',
+      },
+      vehicleTypeId: data.vehicle_type_id,
+      vehicleDetails: data.vehicle_details,
+      serviceIds: data.service_id ? data.service_id.split(',') : [],
+      date: data.date,
+      time: data.time,
+      location: data.location,
+      notes: data.notes,
+      status: data.status,
+      createdAt: data.created_at,
+    }
+  },
+
+  async findBookingsByEmail(email: string): Promise<Booking[]> {
+    const { data: profile } = await supabase.from('profiles').select('id').ilike('email', email).single()
+    if (!profile) return []
+
+    const { data } = await supabase.from('bookings').select('*, profiles(name, phone, email)').eq('profile_id', profile.id).order('date', { ascending: false })
+    if (!data) return []
+
+    return data.map((b: any) => ({
+      id: b.id,
+      reference: b.reference,
+      customer: {
+        name: b.profiles?.name || 'Unknown',
+        phone: b.profiles?.phone || '',
+        email: b.profiles?.email || '',
+      },
+      vehicleTypeId: b.vehicle_type_id,
+      vehicleDetails: b.vehicle_details,
+      serviceIds: b.service_id ? b.service_id.split(',') : [],
+      date: b.date,
+      time: b.time,
+      location: b.location,
+      notes: b.notes,
+      status: b.status,
+      createdAt: b.created_at,
+    }))
+  },
+
+  async getQuoteByBookingId(bookingId: string): Promise<Quote | null> {
+    const { data, error } = await supabase.from('quotes').select('*').eq('booking_id', bookingId).single()
+    if (error || !data) return null
+    return {
+      id: data.id,
+      bookingId: data.booking_id,
+      quotationNumber: data.quotation_number,
+      date: data.date,
+      validUntil: data.valid_until,
+      preparedBy: data.prepared_by,
+      items: data.items,
+      subtotal: data.subtotal,
+      salesTaxRate: data.sales_tax_rate,
+      otherFees: data.other_fees,
+      total: data.total,
+      comments: data.comments,
+      status: data.status,
+      createdAt: data.created_at
+    }
+  },
+
+  async saveQuote(quote: Partial<Quote>): Promise<Quote> {
+    const payload = {
+      booking_id: quote.bookingId,
+      quotation_number: quote.quotationNumber,
+      date: quote.date,
+      valid_until: quote.validUntil,
+      prepared_by: quote.preparedBy,
+      items: quote.items,
+      subtotal: quote.subtotal,
+      sales_tax_rate: quote.salesTaxRate,
+      other_fees: quote.otherFees,
+      total: quote.total,
+      comments: quote.comments,
+      status: quote.status || 'sent'
+    }
+
+    let res
+    if (quote.id) {
+      res = await supabase.from('quotes').update(payload).eq('id', quote.id).select().single()
+    } else {
+      res = await supabase.from('quotes').insert(payload).select().single()
+    }
+    
+    if (res.error) throw new Error(res.error.message)
+    const data = res.data
+    return {
+      id: data.id, bookingId: data.booking_id, quotationNumber: data.quotation_number, date: data.date,
+      validUntil: data.valid_until, preparedBy: data.prepared_by, items: data.items, subtotal: data.subtotal,
+      salesTaxRate: data.sales_tax_rate, otherFees: data.other_fees, total: data.total, comments: data.comments,
+      status: data.status, createdAt: data.created_at
+    }
+  },
+
+  async updateQuoteStatus(quoteId: string, status: 'accepted' | 'rejected'): Promise<void> {
+    const { error } = await supabase.from('quotes').update({ status }).eq('id', quoteId)
+    if (error) throw new Error(error.message)
+  },
+
+  async uploadImage(file: File): Promise<string> {
+    const fileName = `${Date.now()}-${file.name}`
+    const { error } = await supabase.storage.from('images').upload(fileName, file)
+    if (error) throw new Error(error.message)
+    const { data } = supabase.storage.from('images').getPublicUrl(fileName)
+    return data.publicUrl
   },
 
   async getCustomers(): Promise<Customer[]> {
-    await latency(200)
-    return buildCustomers()
+    const { data: profiles } = await supabase.from('profiles').select('*')
+    const { data: bookings } = await supabase.from('bookings').select('profile_id, vehicle_type_id, date')
+    
+    return (profiles || []).map((p: any) => {
+      const pBookings = (bookings || []).filter(b => b.profile_id === p.id)
+      const vTypes = [...new Set(pBookings.map(b => b.vehicle_type_id))]
+      const lastBooking = pBookings.sort((a, b) => b.date.localeCompare(a.date))[0]?.date || null
+      
+      return {
+        id: p.id,
+        name: p.name,
+        phone: p.phone,
+        email: p.email,
+        vehicleTypeIds: vTypes,
+        bookingCount: pBookings.length,
+        lastBookingDate: lastBooking
+      }
+    })
   },
 
   async login(email: string, password: string): Promise<{ name: string; email: string }> {
-    await latency(600)
-    if (
-      email.trim().toLowerCase() === store.settings.account.email &&
-      password === 'truckview'
-    ) {
-      return { name: store.settings.account.name, email: store.settings.account.email }
-    }
-    throw new Error('Incorrect email or password.')
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw new Error(error.message)
+    // Create an admin profile if they logged in successfully but we don't know their name
+    return { name: data.user.email || 'Admin', email: data.user.email || '' }
   },
 
-  /* ---- Subscription ---- */
-
   getSubscriptionPlans(): SubscriptionPlan[] {
-    return clone(seed.subscriptionPlans)
+    return seed.subscriptionPlans
   },
 
   async getSubscription(): Promise<UserSubscription> {
-    await latency(100)
-    return clone(store.subscription)
+    // In a real app we'd fetch this for the logged in user.
+    // For this prototype, we'll return a default free tier for the UI since the UI doesn't have customer auth yet.
+    return { tier: 'free', bookingsUsed: 0, bookingsLimit: 3, renewsAt: toISODate(new Date()) }
   },
 
   async updateSubscription(tier: 'free' | 'standard' | 'premium'): Promise<UserSubscription> {
-    await latency(400)
     const plan = seed.subscriptionPlans.find((p) => p.tier === tier)!
-    store.subscription = {
-      tier,
-      bookingsUsed: 0,
-      bookingsLimit: plan.bookingsPerMonth,
-      renewsAt: toISODate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)),
-    }
-    return clone(store.subscription)
+    return { tier, bookingsUsed: 0, bookingsLimit: plan.bookingsPerMonth, renewsAt: toISODate(new Date()) }
   },
 }

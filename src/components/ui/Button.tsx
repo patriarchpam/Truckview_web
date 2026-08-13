@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '../../utils/format'
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success'
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'outline'
 type Size = 'sm' | 'md' | 'lg'
 
 const base =
@@ -11,6 +11,7 @@ const base =
 const variants: Record<Variant, string> = {
   primary: 'bg-accent-500 text-white hover:bg-accent-600 shadow-[0_6px_20px_-10px_rgba(249,115,22,0.9)]',
   secondary: 'bg-surface text-ink border border-line-strong hover:border-navy-400 hover:bg-surface-2',
+  outline: 'bg-transparent border border-line-strong text-ink hover:bg-surface-2',
   ghost: 'text-ink-soft hover:bg-surface-2 hover:text-ink',
   danger: 'bg-red-600 text-white hover:bg-red-700',
   success: 'bg-success-600 text-white hover:bg-success-700',

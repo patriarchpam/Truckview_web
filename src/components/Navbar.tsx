@@ -37,7 +37,7 @@ export function Navbar() {
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3 group">
-          <img src="/logo.png" alt="Truck-View" className="h-12 w-auto" />
+          <img src="/logo.png" alt="Truck-View" className="h-12 w-auto dark:invert dark:mix-blend-screen" />
           <div className="hidden sm:block">
             <span className="block text-lg font-bold text-ink leading-tight group-hover:text-accent-500 transition-colors">
               Truck-View

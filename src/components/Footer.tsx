@@ -10,7 +10,7 @@ export function Footer() {
           {/* Brand */}
           <div>
             <Link to="/" className="flex items-center gap-3 group">
-              <img src="/logo.png" alt="Truck-View" className="h-10 w-auto brightness-0 invert" />
+              <img src="/logo.png" alt="Truck-View" className="h-10 w-auto invert mix-blend-screen" />
               <div>
                 <span className="block text-lg font-bold text-white leading-tight">Truck-View</span>
                 <span className="block text-[10px] uppercase tracking-widest text-navy-400 font-medium">Global Ent.</span>

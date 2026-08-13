@@ -18,13 +18,11 @@ interface StoreValue {
   settings: Settings | null
   customers: Customer[]
   reload: () => Promise<void>
+  refresh: () => Promise<void>
   getSlots: (dateISO: string) => Promise<SlotAvailability[]>
   createBooking: (draft: BookingDraft) => Promise<Booking>
   updateBookingStatus: (id: ID, status: BookingStatus) => Promise<void>
   rescheduleBooking: (id: ID, date: string, time: string) => Promise<void>
-  saveService: (service: Service) => Promise<void>
-  deleteService: (id: ID) => Promise<void>
-  saveVehicleType: (vehicleType: VehicleType) => Promise<void>
   deleteVehicleType: (id: ID) => Promise<void>
   updateAvailability: (availability: Availability) => Promise<void>
   updateContent: (content: SiteContent) => Promise<void>
@@ -92,18 +90,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     () => ({
       loading, error, vehicleTypes, services, bookings, availability, content, settings, customers, reload,
       getSlots: (dateISO) => api.getSlots(dateISO),
+      refresh: async () => { await reload() },
       createBooking: async (draft) => {
         const result = await api.createBooking(draft)
-        setBookings(result.bookings)
-        void refreshCustomers()
+        await reload()
         return result.booking
       },
-      updateBookingStatus: async (id, status) => { setBookings(await api.updateBookingStatus(id, status)) },
-      rescheduleBooking: async (id, date, time) => { setBookings(await api.rescheduleBooking(id, date, time)) },
-      saveService: async (service) => { setServices(await api.saveService(service)) },
-      deleteService: async (id) => { setServices(await api.deleteService(id)) },
-      saveVehicleType: async (vt) => { setVehicleTypes(await api.saveVehicleType(vt)) },
-      deleteVehicleType: async (id) => { setVehicleTypes(await api.deleteVehicleType(id)) },
+      updateBookingStatus: async (id, status) => { await api.updateBookingStatus(id, status); await reload() },
+      rescheduleBooking: async (id, date, time) => { await api.rescheduleBooking(id, date, time); await reload() },
+      saveService: async (service) => { await api.saveService(service); await reload() },
+      deleteService: async (id) => { await api.deleteService(id); await reload() },
+      saveVehicleType: async (vt) => { await api.saveVehicleType(vt); await reload() },
+      deleteVehicleType: async (id) => { await api.deleteVehicleType(id); await reload() },
       updateAvailability: async (next) => { setAvailability(await api.updateAvailability(next)) },
       updateContent: async (next) => { setContent(await api.updateContent(next)) },
       updateSettings: async (next) => {

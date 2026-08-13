@@ -2,6 +2,7 @@ import React, {
   createContext, useCallback, useContext, useEffect, useMemo, useState,
 } from 'react'
 import { api } from '../lib/api'
+import { supabase } from '../lib/supabase'
 
 interface AdminUser { name: string; email: string }
 interface AuthValue {
@@ -12,28 +13,36 @@ interface AuthValue {
 }
 
 const AuthContext = createContext<AuthValue | null>(null)
-const STORAGE_KEY = 'truckview-admin'
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AdminUser | null>(null)
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    const stored = window.sessionStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      try { setUser(JSON.parse(stored) as AdminUser) } catch { window.sessionStorage.removeItem(STORAGE_KEY) }
-    }
-    setReady(true)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.email) {
+        setUser({ name: 'Admin', email: session.user.email })
+      }
+      setReady(true)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user?.email) {
+        setUser({ name: 'Admin', email: session.user.email })
+      } else {
+        setUser(null)
+      }
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
-    const account = await api.login(email, password)
-    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(account))
-    setUser(account)
+    await api.login(email, password)
   }, [])
 
-  const logout = useCallback(() => {
-    window.sessionStorage.removeItem(STORAGE_KEY)
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut()
     setUser(null)
   }, [])
 

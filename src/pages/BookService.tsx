@@ -24,7 +24,7 @@ export function BookService() {
   const preVehicle = (location.state as { vehicleTypeId?: string })?.vehicleTypeId
 
   const [step, setStep] = useState(1)
-  const [serviceId, setServiceId] = useState(preService ?? '')
+  const [serviceIds, setServiceIds] = useState<string[]>(preService ? [preService] : [])
   const [vehicleTypeId, setVehicleTypeId] = useState(preVehicle ?? '')
   const [vehicleDetails, setVehicleDetails] = useState('')
   const [name, setName] = useState('')
@@ -41,7 +41,7 @@ export function BookService() {
   const activeServices = services.filter((s) => s.active)
   const activeVehicles = vehicleTypes.filter((v) => v.active)
 
-  const selectedService = useMemo(() => services.find((s) => s.id === serviceId), [services, serviceId])
+  const selectedServices = useMemo(() => services.filter((s) => serviceIds.includes(s.id)), [services, serviceIds])
   const availableServices = useMemo(() => {
     if (!vehicleTypeId) return activeServices
     return activeServices.filter((s) => s.vehicleTypeIds.includes(vehicleTypeId))
@@ -65,7 +65,7 @@ export function BookService() {
     if (date) void loadSlots(date)
   }, [date, loadSlots])
 
-  const canProceed1 = serviceId && vehicleTypeId && vehicleDetails.trim()
+  const canProceed1 = serviceIds.length > 0 && vehicleTypeId && vehicleDetails.trim()
   const canProceed2 = name.trim() && phone.trim() && email.trim()
   const canProceed3 = date && time
 
@@ -80,7 +80,7 @@ export function BookService() {
         customer: { name: name.trim(), phone: phone.trim(), email: email.trim() },
         vehicleTypeId,
         vehicleDetails: vehicleDetails.trim(),
-        serviceId,
+        serviceIds,
         date,
         time,
         location: 'Truck-View Workshop, Karu District, Abuja',
@@ -164,32 +164,44 @@ export function BookService() {
             <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.3 }} className="space-y-5">
               <h2 className="text-lg font-semibold text-ink">1. Select Service & Vehicle</h2>
               <Field label="Vehicle Type" required htmlFor="vehicleType">
-                <Select id="vehicleType" value={vehicleTypeId} onChange={(e) => { setVehicleTypeId(e.target.value); setServiceId('') }}>
+                <Select id="vehicleType" value={vehicleTypeId} onChange={(e) => { setVehicleTypeId(e.target.value); setServiceIds([]) }}>
                   <option value="">Choose vehicle type</option>
                   {activeVehicles.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
                 </Select>
               </Field>
-              <Field label="Service" required htmlFor="service">
-                <Select id="service" value={serviceId} onChange={(e) => setServiceId(e.target.value)} disabled={!vehicleTypeId}>
-                  <option value="">Choose a service</option>
-                  {availableServices.map((s) => (
-                    <option key={s.id} value={s.id}>{s.name} — {formatPrice(s.price)} ({formatDuration(s.duration)})</option>
-                  ))}
-                </Select>
-              </Field>
+              <div>
+                <label className="block text-sm font-medium text-ink-soft mb-2">Services <span className="text-red-500">*</span></label>
+                {!vehicleTypeId ? (
+                  <p className="text-sm text-muted">Please select a vehicle type first.</p>
+                ) : (
+                  <div className="grid gap-2">
+                    {availableServices.map(s => {
+                      const isSelected = serviceIds.includes(s.id)
+                      return (
+                        <label key={s.id} className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${isSelected ? 'border-accent-500 bg-accent-50/50 dark:bg-accent-900/10' : 'border-line bg-surface hover:border-accent-300'}`}>
+                          <input type="checkbox" className="mt-1 accent-accent-500" checked={isSelected}
+                            onChange={(e) => {
+                              if (e.target.checked) setServiceIds(prev => [...prev, s.id])
+                              else setServiceIds(prev => prev.filter(id => id !== s.id))
+                            }}
+                          />
+                          <div className="flex-1">
+                            <div className="font-semibold text-sm text-ink">{s.name}</div>
+                            <div className="text-xs text-muted mt-0.5">{s.description}</div>
+                            <div className="mt-2 flex gap-4 text-xs text-muted font-medium">
+                              <span className="flex items-center gap-1"><ClockIcon size={12} /> {formatDuration(s.duration)}</span>
+                              <span>{formatPrice(s.price)}</span>
+                            </div>
+                          </div>
+                        </label>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
               <Field label="Vehicle Details" required htmlFor="vehicleDetails" hint="e.g. Toyota Camry 2020 — Silver">
                 <Input id="vehicleDetails" value={vehicleDetails} onChange={(e) => setVehicleDetails(e.target.value)} placeholder="Make, model, year, colour" />
               </Field>
-              {selectedService && (
-                <div className="rounded-xl bg-surface-2 p-4 text-sm">
-                  <div className="font-semibold text-ink">{selectedService.name}</div>
-                  <div className="text-muted mt-1">{selectedService.description}</div>
-                  <div className="mt-2 flex gap-4 text-xs text-muted">
-                    <span className="flex items-center gap-1"><ClockIcon size={12} /> {formatDuration(selectedService.duration)}</span>
-                    <span>{formatPrice(selectedService.price)}</span>
-                  </div>
-                </div>
-              )}
               <div className="flex justify-end">
                 <Button onClick={() => setStep(2)} disabled={!canProceed1}>Continue</Button>
               </div>
