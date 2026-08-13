@@ -1,9 +1,9 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useStore } from '../../contexts/StoreContext'
 import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
 import { Modal } from '../../components/ui/Modal'
-import { formatShortDate, formatTime, formatPrice } from '../../utils/format'
+import { formatShortDate, formatTime,  } from '../../utils/format'
 import { toast } from 'sonner'
 import type { BookingStatus } from '../../types'
 
@@ -20,7 +20,7 @@ const nextStatus: Record<string, BookingStatus[]> = {
 }
 
 export function AdminBookings() {
-  const { bookings, services, vehicleTypes, updateBookingStatus } = useStore()
+  const { bookings, services, updateBookingStatus } = useStore()
   const [filter, setFilter] = useState<string>('all')
   const [selected, setSelected] = useState<string | null>(null)
   const [quoteModalOpen, setQuoteModalOpen] = useState(false)

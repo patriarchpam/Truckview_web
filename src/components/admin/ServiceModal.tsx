@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Modal } from '../ui/Modal'
 import { Field, Input, Textarea } from '../ui/Field'
 import { Button } from '../ui/Button'
@@ -31,7 +31,7 @@ export function ServiceModal({ open, onClose, service }: ServiceModalProps) {
       setName(service.name)
       setDescription(service.description)
       setDuration(service.duration)
-      setPrice(service.price)
+      setPrice(service.price || 0)
       setImage(service.image || '')
       setSelectedVt(service.vehicleTypeIds || [])
       setActive(service.active)

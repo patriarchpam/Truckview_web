@@ -1,4 +1,3 @@
-import React from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRightIcon, StarIcon, WrenchIcon, ShieldCheckIcon, ClockIcon, TruckIcon, CheckCircleIcon, SparklesIcon } from 'lucide-react'

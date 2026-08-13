@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CalendarIcon, ClockIcon, CheckCircleIcon, AlertCircleIcon } from 'lucide-react'
 import { addDays } from 'date-fns'
@@ -16,7 +16,6 @@ const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
 
 export function BookService() {
   const location = useLocation()
-  const navigate = useNavigate()
   const { services, vehicleTypes, getSlots, createBooking } = useStore()
   const { canBook, remainingBookings, current } = useSubscription()
 
@@ -41,7 +40,6 @@ export function BookService() {
   const activeServices = services.filter((s) => s.active)
   const activeVehicles = vehicleTypes.filter((v) => v.active)
 
-  const selectedServices = useMemo(() => services.filter((s) => serviceIds.includes(s.id)), [services, serviceIds])
   const availableServices = useMemo(() => {
     if (!vehicleTypeId) return activeServices
     return activeServices.filter((s) => s.vehicleTypeIds.includes(vehicleTypeId))

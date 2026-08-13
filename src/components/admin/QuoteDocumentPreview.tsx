@@ -1,11 +1,10 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { formatPrice, formatLongDate } from '../../utils/format';
+import { formatPrice } from '../../utils/format';
 import type { Booking, QuoteItem } from '../../types';
 import { Button } from '../ui/Button';
 import { Download, XIcon } from 'lucide-react';
-import { useStore } from '../../contexts/StoreContext';
 
 interface QuoteDocumentPreviewProps {
   booking: Booking;
@@ -26,12 +25,10 @@ interface QuoteDocumentPreviewProps {
 }
 
 export function QuoteDocumentPreview({ booking, quoteData, onClose }: QuoteDocumentPreviewProps) {
-  const { serviceById } = useStore();
   const documentRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const bServices = (booking.serviceIds || []).map(id => serviceById(id)).filter(Boolean);
-  const serviceNames = bServices.map(s => s?.name).join(', ') || 'Selected Services';
+
 
   const handleDownload = async () => {
     if (!documentRef.current) return;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SearchIcon, CalendarIcon, ClockIcon, TruckIcon, MapPinIcon } from 'lucide-react'
 import { api } from '../lib/api'

@@ -8,7 +8,6 @@ import type {
   Customer,
   ID,
   Quote,
-  QuoteItem,
   Service,
   Settings,
   SiteContent,

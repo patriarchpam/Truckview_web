@@ -1,6 +1,5 @@
-import React from 'react'
 import { motion } from 'framer-motion'
-import { CalendarIcon, UsersIcon, WrenchIcon, TruckIcon, TrendingUpIcon, ClockIcon } from 'lucide-react'
+import { CalendarIcon, UsersIcon, WrenchIcon, TrendingUpIcon,  } from 'lucide-react'
 import { useStore } from '../../contexts/StoreContext'
 import { Badge } from '../../components/ui/Badge'
 import { formatShortDate, formatTime } from '../../utils/format'
@@ -12,15 +11,13 @@ const statusColors: Record<string, 'warning' | 'info' | 'accent' | 'success' | '
 }
 
 export function AdminDashboard() {
-  const { bookings, services, vehicleTypes, customers, loading } = useStore()
+  const { bookings, services, customers, loading } = useStore()
 
   if (loading) return <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-accent-500 border-t-transparent" /></div>
 
   const today = new Date().toISOString().slice(0, 10)
   const todayBookings = bookings.filter((b) => b.date === today)
   const activeBookings = bookings.filter((b) => ['pending', 'confirmed', 'in-progress'].includes(b.status))
-  const completedBookings = bookings.filter((b) => b.status === 'completed')
-
   const stats = [
     { icon: CalendarIcon, label: "Today's Bookings", value: todayBookings.length, color: 'bg-accent-100 text-accent-600 dark:bg-accent-900/30 dark:text-accent-400' },
     { icon: TrendingUpIcon, label: 'Active Bookings', value: activeBookings.length, color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' },

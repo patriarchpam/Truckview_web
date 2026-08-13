@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { PlusIcon, PencilIcon, TrashIcon } from 'lucide-react'
 import { useStore } from '../../contexts/StoreContext'
 import { Badge } from '../../components/ui/Badge'

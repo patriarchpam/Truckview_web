@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useStore } from '../../contexts/StoreContext'
 import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
-import { formatTime } from '../../utils/format'
+import {  } from '../../utils/format'
 import type { Weekday, Availability } from '../../types'
 
 const days: Weekday[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']

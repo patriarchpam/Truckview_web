@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { CheckIcon, XIcon, FileTextIcon } from 'lucide-react'
 import { api } from '../lib/api'
 import { Button } from './ui/Button'

@@ -1,4 +1,3 @@
-import React from 'react'
 import { motion } from 'framer-motion'
 import { useStore } from '../contexts/StoreContext'
 import { ButtonLink } from '../components/ui/Button'

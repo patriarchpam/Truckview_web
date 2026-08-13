@@ -1,4 +1,3 @@
-import React from 'react'
 import { motion } from 'framer-motion'
 import { TargetIcon, EyeIcon, WrenchIcon, UsersIcon } from 'lucide-react'
 import { useStore } from '../contexts/StoreContext'

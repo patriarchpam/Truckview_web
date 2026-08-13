@@ -1,4 +1,3 @@
-import React from 'react'
 import { cn } from '../../utils/format'
 
 type BadgeVariant = 'default' | 'accent' | 'success' | 'warning' | 'danger' | 'info'

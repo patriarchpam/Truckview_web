@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { PhoneIcon, MailIcon, MapPinIcon, ClockIcon, SendIcon } from 'lucide-react'
 import { useStore } from '../contexts/StoreContext'

@@ -1,4 +1,3 @@
-import React from 'react'
 import { useStore } from '../../contexts/StoreContext'
 import { Badge } from '../../components/ui/Badge'
 import { formatShortDate } from '../../utils/format'

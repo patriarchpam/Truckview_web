@@ -1,4 +1,4 @@
-import React, {
+import {
   createContext, useCallback, useContext, useEffect, useMemo, useState,
 } from 'react'
 import { api } from '../lib/api'
@@ -27,6 +27,9 @@ interface StoreValue {
   updateAvailability: (availability: Availability) => Promise<void>
   updateContent: (content: SiteContent) => Promise<void>
   updateSettings: (settings: Settings) => Promise<void>
+  saveService: (service: Partial<Service>) => Promise<void>
+  deleteService: (id: ID) => Promise<void>
+  saveVehicleType: (vt: Partial<VehicleType>) => Promise<void>
   serviceById: (id: ID) => Service | undefined
   vehicleTypeById: (id: ID) => VehicleType | undefined
 }
@@ -98,10 +101,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       },
       updateBookingStatus: async (id, status) => { await api.updateBookingStatus(id, status); await reload() },
       rescheduleBooking: async (id, date, time) => { await api.rescheduleBooking(id, date, time); await reload() },
-      saveService: async (service) => { await api.saveService(service); await reload() },
-      deleteService: async (id) => { await api.deleteService(id); await reload() },
-      saveVehicleType: async (vt) => { await api.saveVehicleType(vt); await reload() },
-      deleteVehicleType: async (id) => { await api.deleteVehicleType(id); await reload() },
+      saveService: async (service: Partial<Service>) => { await api.saveService(service as any); await reload() },
+      deleteService: async (id: ID) => { await api.deleteService(id); await reload() },
+      saveVehicleType: async (vt: Partial<VehicleType>) => { await api.saveVehicleType(vt as any); await reload() },
+      deleteVehicleType: async (id: ID) => { await api.deleteVehicleType(id); await reload() },
       updateAvailability: async (next) => { setAvailability(await api.updateAvailability(next)) },
       updateContent: async (next) => { setContent(await api.updateContent(next)) },
       updateSettings: async (next) => {

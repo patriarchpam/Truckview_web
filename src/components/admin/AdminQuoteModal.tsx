@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { PlusIcon, TrashIcon, FileTextIcon } from 'lucide-react'
 import { Modal } from '../ui/Modal'
 import { Field, Input, Textarea } from '../ui/Field'

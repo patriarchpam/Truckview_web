@@ -1,4 +1,3 @@
-import React from 'react'
 import { useStore } from '../../contexts/StoreContext'
 
 export function AdminSettings() {

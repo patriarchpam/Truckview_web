@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MenuIcon, XIcon, MoonIcon, SunIcon, PhoneIcon } from 'lucide-react'
