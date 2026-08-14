@@ -119,9 +119,9 @@ export function AdminLayout() {
 
   return (
     <div className="flex h-screen bg-canvas">
-      {/* Sidebar */}
-      <aside className="hidden lg:flex w-64 flex-col border-r border-line bg-surface">
-        <div className="flex items-center justify-between px-5 py-5 border-b border-line">
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex w-64 flex-col border-r border-line/50 glass z-30">
+        <div className="flex h-16 shrink-0 items-center gap-3 px-6 border-b border-line/50">
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="Truck-View" className="h-9 w-auto" />
             <div>
@@ -129,14 +129,14 @@ export function AdminLayout() {
               <span className="block text-[9px] uppercase tracking-widest text-muted">Admin</span>
             </div>
           </div>
-          <button onClick={toggleTheme} className="p-1.5 text-muted hover:text-ink hover:bg-surface-2 rounded-lg transition-colors">
+          <button onClick={toggleTheme} className="ml-auto p-1.5 text-muted hover:text-ink hover:bg-surface-2 rounded-lg transition-colors">
             {theme === 'dark' ? <SunIcon size={16} /> : <MoonIcon size={16} />}
           </button>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           {renderNavLinks()}
         </nav>
-        <div className="border-t border-line px-3 py-4 space-y-2">
+        <div className="border-t border-line/50 px-3 py-4 space-y-2">
           <NavLink to="/" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted hover:text-ink hover:bg-surface-2 transition-colors">
             <ChevronLeftIcon size={18} />
             Back to site
@@ -151,7 +151,7 @@ export function AdminLayout() {
       {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile header */}
-        <header className="lg:hidden flex items-center justify-between border-b border-line bg-surface px-4 py-3 relative z-20">
+        <header className="lg:hidden flex items-center justify-between border-b border-line/50 glass px-4 py-3 relative z-20">
           <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-1 -ml-1 text-ink-soft hover:text-ink">
             {mobileMenuOpen ? <XIcon size={24} /> : <MenuIcon size={24} />}
           </button>
@@ -185,10 +185,10 @@ export function AdminLayout() {
           </div>
         )}
 
-        {/* Content area */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8">
+        {/* Main content wrapper */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-canvas">
           <Outlet />
-        </main>
+        </div>
       </div>
     </div>
   )

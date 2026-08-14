@@ -6,6 +6,8 @@ import { formatPrice, formatDuration } from '../utils/format'
 
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0 } }
 
+import { SEO } from '../components/SEO'
+
 export function Services() {
   const { services, loading } = useStore()
   const active = services.filter((s) => s.active)
@@ -13,8 +15,14 @@ export function Services() {
   if (loading) return <div className="flex h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-accent-500 border-t-transparent" /></div>
 
   return (
-    <div className="py-16">
-      <div className="mx-auto max-w-7xl px-4">
+    <>
+      <SEO 
+        title="Our Services" 
+        description="Explore our full range of professional auto repair and vehicle maintenance services in Abuja."
+        canonicalUrl="https://truckview.com.ng/services"
+      />
+      <div className="py-16">
+        <div className="mx-auto max-w-7xl px-4">
         <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.5 }} className="text-center mb-14">
           <span className="text-sm font-semibold uppercase tracking-wider text-accent-500">Our Services</span>
           <h1 className="mt-2 text-3xl font-bold text-ink sm:text-4xl">Professional Vehicle Services</h1>
@@ -60,5 +68,6 @@ export function Services() {
         </div>
       </div>
     </div>
+    </>
   )
 }

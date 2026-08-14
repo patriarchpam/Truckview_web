@@ -5,13 +5,21 @@ import { ButtonLink } from '../components/ui/Button'
 
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0 } }
 
+import { SEO } from '../components/SEO'
+
 export function About() {
   const { content, loading } = useStore()
   if (loading || !content) return <div className="flex h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-accent-500 border-t-transparent" /></div>
 
   return (
-    <div className="py-16">
-      <div className="mx-auto max-w-7xl px-4">
+    <>
+      <SEO 
+        title="About Us" 
+        description="Learn more about Truck-View Global Ent. and our mission to provide the best auto repair services in Abuja."
+        canonicalUrl="https://truckview.com.ng/about"
+      />
+      <div className="py-16">
+        <div className="mx-auto max-w-7xl px-4">
         {/* Hero */}
         <div className="grid gap-12 lg:grid-cols-2 items-center mb-20">
           <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.6 }}>
@@ -73,7 +81,8 @@ export function About() {
             </motion.div>
           ))}
         </div>
+        </div>
       </div>
-    </div>
+    </>
   )
 }

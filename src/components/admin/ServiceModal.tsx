@@ -52,7 +52,8 @@ export function ServiceModal({ open, onClose, service }: ServiceModalProps) {
       await saveService({
         id: service?.id,
         name, description, duration, price, image, active,
-        vehicleTypeIds: selectedVt
+        vehicleTypeIds: selectedVt,
+        details: service?.details || []
       })
       onClose()
     } catch (err) {

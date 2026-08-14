@@ -42,11 +42,14 @@ export function Footer() {
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-4">Services</h3>
             <ul className="space-y-2.5 text-sm">
-              {['Routine Maintenance', 'Vehicle Inspection', 'Engine Diagnostics', 'Tyres & Brakes', 'Detailing & Care', 'Mobile Assistance'].map((s) => (
+              {['Routine Maintenance', 'Vehicle Inspection', 'Engine Diagnostics', 'Tyres & Brakes', 'Detailing & Care'].map((s) => (
                 <li key={s}>
                   <Link to="/services" className="hover:text-accent-400 transition-colors">{s}</Link>
                 </li>
               ))}
+              <li>
+                <a href="tel:08036798700" className="hover:text-accent-400 transition-colors">Mobile Assistance</a>
+              </li>
             </ul>
           </div>
 

@@ -13,13 +13,8 @@ function PlaceholderPage({ title, description }: { title: string, description: s
   )
 }
 
-export const AdminMechanics = () => <PlaceholderPage title="Mechanics Management" description="Manage mechanic profiles, schedules, skills, and assignments. Coming soon!" />
-export const AdminPayments = () => <PlaceholderPage title="Payments & Invoices" description="Track revenue, manage payouts, and view invoice history. Coming soon!" />
-export const AdminReviews = () => <PlaceholderPage title="Customer Reviews" description="Monitor and moderate customer feedback and ratings. Coming soon!" />
-export const AdminReports = () => <PlaceholderPage title="Analytics & Reports" description="View business performance, service metrics, and financial reports. Coming soon!" />
-export const AdminNotifications = () => <PlaceholderPage title="System Notifications" description="Manage automated alerts and send mass notifications to users. Coming soon!" />
+
 export const AdminSupport = () => <PlaceholderPage title="Help & Support Desk" description="Manage customer support tickets and inquiries. Coming soon!" />
-export const AdminProfile = () => <PlaceholderPage title="Admin Profile" description="Manage your personal admin account settings and security. Coming soon!" />
 
 export const AdminSettingsGeneral = () => {
   const { settings, loading } = useStore()
@@ -39,7 +34,7 @@ export const AdminSettingsGeneral = () => {
     </div>
   )
 }
-export const AdminSettingsStaff = () => <PlaceholderPage title="Admin & Staff" description="Manage roles, permissions, and staff accounts." />
+
 export const AdminSettingsBooking = () => {
   const { settings, loading } = useStore()
   if (loading || !settings) return null
@@ -59,7 +54,4 @@ export const AdminSettingsBooking = () => {
     </div>
   )
 }
-export const AdminSettingsPayments = () => <PlaceholderPage title="Payment Settings" description="Configure gateways, taxes, and pricing rules." />
-export const AdminSettingsAppearance = () => <PlaceholderPage title="Appearance" description="Customize dashboard themes and brand colors." />
-export const AdminSettingsSecurity = () => <PlaceholderPage title="Security" description="Configure 2FA, session policies, and password rules." />
-export const AdminSettingsAudit = () => <PlaceholderPage title="Audit Logs" description="View administrative activity logs." />
+

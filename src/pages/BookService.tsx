@@ -14,6 +14,8 @@ import { vehicleMakes } from '../data/vehicleMakes'
 import type { BookingDraft, SlotAvailability } from '../types'
 import { formatTime, formatPrice, formatDuration, formatShortDate, toISODate } from '../utils/format'
 
+import { SEO } from '../components/SEO'
+
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
 
 export function BookService() {
@@ -69,6 +71,48 @@ export function BookService() {
   useEffect(() => {
     if (date) void loadSlots(date)
   }, [date, loadSlots])
+
+  useEffect(() => {
+    if (!preCar || !activeVehicles.length || vehicleTypeId) return;
+    
+    // Reverse sort makes by length so longer names match first
+    const sortedMakes = Object.keys(vehicleMakes).sort((a, b) => b.length - a.length);
+    let foundMake = '';
+    let foundModel = '';
+
+    for (const make of sortedMakes) {
+      if (preCar.startsWith(make)) {
+        foundMake = make;
+        break;
+      }
+    }
+
+    if (foundMake) {
+      const models = (vehicleMakes as any)[foundMake] || [];
+      const sortedModels = [...models].sort((a: string, b: string) => b.length - a.length);
+      const remainder = preCar.substring(foundMake.length).trim();
+      
+      for (const model of sortedModels) {
+        if (remainder.startsWith(model)) {
+          foundModel = model;
+          break;
+        }
+      }
+
+      const vt = activeVehicles.find(v => v.name.toLowerCase() === foundMake.toLowerCase());
+      if (vt) {
+        setVehicleTypeId(vt.id);
+        if (foundModel) {
+          setVehicleModel(foundModel);
+          const finalRest = remainder.substring(foundModel.length).trim();
+          // Remove leading hyphens if present, e.g. "- red" -> "red"
+          setVehicleDetails(finalRest.replace(/^-+\s*/, ''));
+        } else {
+          setVehicleDetails(remainder.replace(/^-+\s*/, ''));
+        }
+      }
+    }
+  }, [preCar, activeVehicles, vehicleTypeId]);
 
   useEffect(() => {
     if (user && !name) {
@@ -160,12 +204,18 @@ export function BookService() {
   }
 
   return (
-    <div className="py-16">
-      <div className="mx-auto max-w-3xl px-4">
-        <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.5 }} className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-ink">Book a Service</h1>
-          <p className="mt-2 text-muted">Fill in the details below to schedule your appointment.</p>
-        </motion.div>
+    <>
+      <SEO 
+        title="Book a Service" 
+        description="Schedule your auto repair or maintenance appointment with Truck-View in Abuja."
+        canonicalUrl="https://truckview.com.ng/book"
+      />
+      <div className="py-16">
+        <div className="mx-auto max-w-3xl px-4">
+          <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.5 }} className="text-center mb-10">
+            <h1 className="text-3xl font-bold text-ink">Book a Service</h1>
+            <p className="mt-2 text-muted">Fill in the details below to schedule your appointment.</p>
+          </motion.div>
 
         {/* Subscription warning */}
         {!canBook && (
@@ -348,5 +398,6 @@ export function BookService() {
         </div>
       </div>
     </div>
+    </>
   )
 }

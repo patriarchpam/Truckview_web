@@ -7,6 +7,8 @@ import { formatPrice, formatDuration } from '../utils/format'
 
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0 } }
 
+import { SEO } from '../components/SEO'
+
 export function Home() {
   const { content, services, vehicleTypes, loading } = useStore()
 
@@ -22,6 +24,10 @@ export function Home() {
 
   return (
     <>
+      <SEO 
+        title="Expert Vehicle Repair & Servicing" 
+        canonicalUrl="https://truckview.com.ng/"
+      />
       {/* Hero */}
       <section className="relative overflow-hidden bg-navy-950 text-white">
         <div className="absolute inset-0">

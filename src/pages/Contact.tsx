@@ -5,6 +5,7 @@ import { useStore } from '../contexts/StoreContext'
 import { Button } from '../components/ui/Button'
 import { Field, Input, Textarea } from '../components/ui/Field'
 import { toast } from 'sonner'
+import { SEO } from '../components/SEO'
 
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0 } }
 
@@ -31,8 +32,13 @@ export function Contact() {
   ]
 
   return (
-    <div className="py-16">
-      <div className="mx-auto max-w-7xl px-4">
+    <>
+      <SEO 
+        title="Contact Us"
+        description="Get in touch with Truck-View Global Ent. for all your car repair and maintenance needs in Abuja."
+      />
+      <div className="py-16">
+        <div className="mx-auto max-w-7xl px-4">
         <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.5 }} className="text-center mb-14">
           <span className="text-sm font-semibold uppercase tracking-wider text-accent-500">Contact Us</span>
           <h1 className="mt-2 text-3xl font-bold text-ink sm:text-4xl">Get in Touch</h1>
@@ -110,5 +116,6 @@ export function Contact() {
         </motion.div>
       </div>
     </div>
+    </>
   )
 }

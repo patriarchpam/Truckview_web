@@ -26,25 +26,43 @@ import { AdminLogin } from './pages/admin/AdminLogin'
 import { AdminServices } from './pages/admin/AdminServices'
 import { AdminSettings } from './pages/admin/AdminSettings'
 import { AdminVehicleTypes } from './pages/admin/AdminVehicleTypes'
-import { 
-  AdminMechanics, AdminPayments, AdminReviews, AdminReports, AdminNotifications, AdminSupport, AdminProfile,
-  AdminSettingsGeneral, AdminSettingsStaff, AdminSettingsBooking, AdminSettingsPayments, AdminSettingsAppearance, AdminSettingsSecurity, AdminSettingsAudit 
-} from './pages/admin/AdminPlaceholders'
+import { AdminMechanics } from './pages/admin/AdminMechanics'
+import { AdminPayments } from './pages/admin/AdminPayments'
+import { AdminReviews } from './pages/admin/AdminReviews'
+import { AdminReports } from './pages/admin/AdminReports'
+import { AdminNotifications } from './pages/admin/AdminNotifications'
+import { AdminProfile } from './pages/admin/AdminProfile'
+import { AdminSettingsStaff } from './pages/admin/AdminSettingsStaff'
+import { AdminSettingsPayments } from './pages/admin/AdminSettingsPayments'
+import { AdminSettingsAppearance } from './pages/admin/AdminSettingsAppearance'
+import { AdminSettingsSecurity } from './pages/admin/AdminSettingsSecurity'
+import { AdminSettingsAudit } from './pages/admin/AdminSettingsAudit'
+import { AdminSettingsGeneral, AdminSettingsBooking } from './pages/admin/AdminPlaceholders'
 import { Login } from './pages/Login'
 import { Signup } from './pages/Signup'
 import { CustomerDashboard } from './pages/customer/CustomerDashboard'
 import { CustomerBookings } from './pages/customer/CustomerBookings'
 import { CustomerVehicles } from './pages/customer/CustomerVehicles'
-import { CustomerFindMechanic, CustomerSavedMechanics, CustomerPayments, CustomerNotifications, CustomerProfile, CustomerSupport } from './pages/customer/CustomerPlaceholders'
+import { CustomerProfile } from './pages/customer/CustomerProfile'
+import { CustomerFindMechanic } from './pages/customer/CustomerFindMechanic'
+import { CustomerSavedMechanics } from './pages/customer/CustomerSavedMechanics'
+import { CustomerPayments } from './pages/customer/CustomerPayments'
+import { CustomerNotifications } from './pages/customer/CustomerNotifications'
+import { HelpSupport } from './pages/shared/HelpSupport'
+
+import { HelmetProvider } from 'react-helmet-async'
+
+import { AbujaMechanic } from './pages/service-areas/AbujaMechanic'
 
 export function App() {
   return (
-    <ThemeProvider>
-      <StoreProvider>
-        <AuthProvider>
-          <SubscriptionProvider>
-            <BrowserRouter>
-              <Routes>
+    <HelmetProvider>
+      <ThemeProvider>
+        <StoreProvider>
+          <AuthProvider>
+            <SubscriptionProvider>
+              <BrowserRouter>
+                <Routes>
                 <Route element={<PublicLayout />}>
                   <Route index element={<Home />} />
                   <Route path="services" element={<Services />} />
@@ -56,6 +74,7 @@ export function App() {
                   <Route path="booking" element={<BookingLookup />} />
                   <Route path="login" element={<Login />} />
                   <Route path="signup" element={<Signup />} />
+                  <Route path="service-areas/abuja" element={<AbujaMechanic />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
 
@@ -68,7 +87,7 @@ export function App() {
                   <Route path="payments" element={<CustomerPayments />} />
                   <Route path="notifications" element={<CustomerNotifications />} />
                   <Route path="profile/*" element={<CustomerProfile />} />
-                  <Route path="support" element={<CustomerSupport />} />
+                  <Route path="support" element={<HelpSupport />} />
                 </Route>
 
                 <Route path="/admin/login" element={<AdminLogin />} />
@@ -84,7 +103,7 @@ export function App() {
                   <Route path="reviews" element={<AdminReviews />} />
                   <Route path="reports" element={<AdminReports />} />
                   <Route path="notifications" element={<AdminNotifications />} />
-                  <Route path="support" element={<AdminSupport />} />
+                  <Route path="support" element={<HelpSupport />} />
                   <Route path="profile" element={<AdminProfile />} />
                   <Route path="content" element={<AdminContent />} />
                   <Route path="settings" element={<AdminSettings />}>
@@ -105,5 +124,6 @@ export function App() {
         </AuthProvider>
       </StoreProvider>
     </ThemeProvider>
+    </HelmetProvider>
   )
 }

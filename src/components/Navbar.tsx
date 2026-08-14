@@ -5,6 +5,7 @@ import { MenuIcon, XIcon, MoonIcon, SunIcon, PhoneIcon, UserIcon } from 'lucide-
 import { useTheme } from '../contexts/ThemeContext'
 import { useAuth } from '../contexts/AuthContext'
 import { cn } from '../utils/format'
+import { ButtonLink } from './ui/Button'
 
 const links = [
   { to: '/', label: 'Home' },
@@ -21,20 +22,7 @@ export function Navbar() {
   const [open, setOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-surface/80 backdrop-blur-xl">
-      {/* Top bar */}
-      <div className="bg-navy-900 text-white text-xs py-1.5">
-        <div className="mx-auto max-w-7xl px-4 flex items-center justify-between">
-          <span className="flex items-center gap-1.5">
-            <PhoneIcon size={12} />
-            0803 679 8700
-          </span>
-          <span className="hidden sm:block">Behind Games Village, Deck One Apartments, Karu District, Abuja</span>
-          <a href="mailto:truckviewent@gmail.com" className="hover:text-accent-400 transition-colors">
-            truckviewent@gmail.com
-          </a>
-        </div>
-      </div>
+    <header className="sticky top-0 z-40 border-b border-line/50 glass">
 
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
         {/* Logo */}
@@ -88,12 +76,9 @@ export function Navbar() {
                 </Link>
               </div>
             )}
-            <Link
-              to="/book"
-              className="inline-flex items-center gap-2 rounded-xl bg-accent-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-600 shadow-[0_6px_20px_-10px_rgba(249,115,22,0.9)] transition-all active:scale-[0.98]"
-            >
+            <ButtonLink to="/book" variant="gradient">
               Book a Service
-            </Link>
+            </ButtonLink>
           </div>
 
           <button onClick={() => setOpen(!open)} className="lg:hidden p-2 rounded-lg text-muted hover:text-ink hover:bg-surface-2">
@@ -146,13 +131,9 @@ export function Navbar() {
                 )}
               </div>
               <div className="pt-2 px-2 pb-4 sm:hidden">
-                <Link
-                  to="/book"
-                  onClick={() => setOpen(false)}
-                  className="flex w-full justify-center items-center gap-2 rounded-xl bg-accent-500 px-5 py-3 text-sm font-medium text-white hover:bg-accent-600 active:scale-[0.98]"
-                >
+                <ButtonLink to="/book" variant="gradient" className="w-full justify-center mt-2" onClick={() => setOpen(false)}>
                   Book a Service
-                </Link>
+                </ButtonLink>
               </div>
             </div>
           </motion.div>

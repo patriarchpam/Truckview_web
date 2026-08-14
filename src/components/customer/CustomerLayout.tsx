@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { cn } from '../../utils/format'
+import { Chatbot } from '../Chatbot'
 
 const nav = [
   { to: '/dashboard', icon: LayoutDashboardIcon, label: 'Home', end: true },
@@ -109,8 +110,8 @@ export function CustomerLayout() {
   return (
     <div className="flex h-screen bg-canvas">
       {/* Sidebar */}
-      <aside className="hidden lg:flex w-64 flex-col border-r border-line bg-surface">
-        <div className="flex items-center gap-3 px-5 py-5 border-b border-line">
+      <aside className="hidden lg:flex w-64 flex-col border-r border-line/50 glass z-30">
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-line/50">
           <img src="/logo.png" alt="Truck-View" className="h-9 w-auto" />
           <div>
             <span className="block text-sm font-bold text-ink leading-tight">Truck-View</span>
@@ -132,10 +133,9 @@ export function CustomerLayout() {
         </div>
       </aside>
 
-      {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile header */}
-        <header className="lg:hidden flex items-center justify-between border-b border-line bg-surface px-4 py-3 relative z-20">
+        <header className="lg:hidden flex items-center justify-between border-b border-line/50 glass px-4 py-3 relative z-20">
           <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-1 -ml-1 text-ink-soft hover:text-ink">
             {mobileMenuOpen ? <XIcon size={24} /> : <MenuIcon size={24} />}
           </button>
@@ -166,8 +166,9 @@ export function CustomerLayout() {
         )}
 
         {/* Content area */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-8 relative">
           <Outlet />
+          <Chatbot />
         </main>
       </div>
     </div>

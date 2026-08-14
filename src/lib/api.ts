@@ -507,7 +507,7 @@ export const api = {
 
   async getCurrentUser(user: any): Promise<{ name: string; email: string; role: 'admin' | 'customer'; profileId?: string }> {
     const email = user.email?.toLowerCase() || '';
-    const { data } = await supabase.from('profiles').select('id, name').eq('email', email).single();
+    const { data } = await supabase.from('profiles').select('id, name').eq('email', email).limit(1).maybeSingle();
     
     if (data) {
       return { name: data.name, email, role: 'customer', profileId: data.id };
@@ -517,7 +517,7 @@ export const api = {
     if (user.app_metadata?.provider === 'google') {
       const name = user.user_metadata?.full_name || email.split('@')[0];
       // Generate a dummy phone if required, or let it be if not strictly checked
-      const dummyPhone = `GOOGLE-${Date.now().toString().slice(-6)}`;
+      const dummyPhone = `No Phone Provided`;
       const { data: newProfile, error } = await supabase.from('profiles').insert({
         name,
         email,
