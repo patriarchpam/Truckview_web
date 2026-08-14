@@ -404,17 +404,134 @@ export const api = {
         phone: p.phone,
         email: p.email,
         vehicleTypeIds: vTypes,
-        bookingCount: pBookings.length,
-        lastBookingDate: lastBooking
+        bookingCount: p.manual_booking_count !== null && p.manual_booking_count !== undefined ? p.manual_booking_count : pBookings.length,
+        lastBookingDate: p.manual_last_booking_date || lastBooking
       }
     })
   },
 
-  async login(email: string, password: string): Promise<{ name: string; email: string }> {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  async createCustomer(customer: { name: string; email: string; phone: string }): Promise<Customer> {
+    const email = customer.email.toLowerCase();
+    
+    // Check if exists
+    const { data: existingEmail } = await supabase.from('profiles').select('*').eq('email', email).single();
+    if (existingEmail) {
+      throw new Error('A customer with this email already exists.');
+    }
+    
+    const { data: existingPhone } = await supabase.from('profiles').select('*').eq('phone', customer.phone).single();
+    if (existingPhone) {
+      throw new Error('A customer with this phone number already exists.');
+    }
+
+    const { data, error } = await supabase.from('profiles').insert({
+      name: customer.name,
+      email,
+      phone: customer.phone
+    }).select().single();
+    
+    if (error) throw new Error(error.message);
+    
+    return {
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      vehicleTypeIds: [],
+      bookingCount: 0,
+      lastBookingDate: null
+    };
+  },
+
+  async updateCustomer(id: string, customer: { name: string; email: string; phone: string; manualBookingCount?: number | null; manualLastBookingDate?: string | null }): Promise<void> {
+    const email = customer.email.toLowerCase();
+    
+    // Check if exists
+    const { data: existingEmail } = await supabase.from('profiles').select('id').eq('email', email).single();
+    if (existingEmail && existingEmail.id !== id) {
+      throw new Error('A customer with this email already exists.');
+    }
+    
+    const { data: existingPhone } = await supabase.from('profiles').select('id').eq('phone', customer.phone).single();
+    if (existingPhone && existingPhone.id !== id) {
+      throw new Error('A customer with this phone number already exists.');
+    }
+
+    const { error } = await supabase.from('profiles').update({
+      name: customer.name,
+      email,
+      phone: customer.phone,
+      manual_booking_count: customer.manualBookingCount,
+      manual_last_booking_date: customer.manualLastBookingDate
+    }).eq('id', id);
+
+    if (error) throw new Error(error.message);
+  },
+
+  async login(email: string, password: string): Promise<void> {
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw new Error(error.message)
-    // Create an admin profile if they logged in successfully but we don't know their name
-    return { name: data.user.email || 'Admin', email: data.user.email || '' }
+  },
+
+  async customerSignup(customer: { name: string; email: string; phone: string; password: string }): Promise<void> {
+    const email = customer.email.toLowerCase();
+    
+    // Check if customer exists in profiles
+    const { data: existingEmail } = await supabase.from('profiles').select('id').eq('email', email).single();
+    if (existingEmail) {
+      throw new Error('A customer with this email already exists.');
+    }
+
+    const { error: signUpError } = await supabase.auth.signUp({ email, password: customer.password });
+    if (signUpError) throw new Error(signUpError.message);
+
+    // Create profile
+    const { error: profileError } = await supabase.from('profiles').insert({
+      name: customer.name,
+      email,
+      phone: customer.phone
+    });
+    
+    if (profileError) throw new Error(profileError.message);
+  },
+
+  async loginWithGoogle(): Promise<void> {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`
+      }
+    })
+    if (error) throw new Error(error.message)
+  },
+
+  async getCurrentUser(user: any): Promise<{ name: string; email: string; role: 'admin' | 'customer'; profileId?: string }> {
+    const email = user.email?.toLowerCase() || '';
+    const { data } = await supabase.from('profiles').select('id, name').eq('email', email).single();
+    
+    if (data) {
+      return { name: data.name, email, role: 'customer', profileId: data.id };
+    }
+
+    // Auto-create customer profile if they signed in via Google
+    if (user.app_metadata?.provider === 'google') {
+      const name = user.user_metadata?.full_name || email.split('@')[0];
+      // Generate a dummy phone if required, or let it be if not strictly checked
+      const dummyPhone = `GOOGLE-${Date.now().toString().slice(-6)}`;
+      const { data: newProfile, error } = await supabase.from('profiles').insert({
+        name,
+        email,
+        phone: dummyPhone // prompt them later to update
+      }).select('id').single();
+
+      if (!error && newProfile) {
+        return { name, email, role: 'customer', profileId: newProfile.id };
+      } else if (error) {
+        console.error("Failed to auto-create Google customer profile", error)
+      }
+    }
+
+    return { name: 'Admin', email, role: 'admin' };
   },
 
   getSubscriptionPlans(): SubscriptionPlan[] {

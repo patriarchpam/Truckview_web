@@ -20,8 +20,12 @@ const statusMap: Record<BookingStatus, { label: string; variant: 'success' | 'wa
   cancelled: { label: 'Cancelled', variant: 'danger' },
 }
 
+import { Navigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+
 export function BookingLookup() {
   const { serviceById, vehicleTypeById } = useStore()
+  const { user } = useAuth()
   
   const [mode, setMode] = useState<'reference' | 'history'>('reference')
   const [reference, setReference] = useState('')
@@ -74,8 +78,7 @@ export function BookingLookup() {
   const renderBookingCard = (b: Booking) => {
     const bServices = (b.serviceIds || []).map(id => serviceById(id)).filter(Boolean)
     const vehicle = vehicleTypeById(b.vehicleTypeId)
-    const status = statusMap[b.status]
-    if (bServices.length === 0 || !vehicle) return null
+    const status = statusMap[b.status] || { label: b.status, variant: 'default' }
 
     return (
       <div key={b.id} className="rounded-2xl border border-line bg-surface p-6 shadow-card space-y-5">
@@ -96,14 +99,16 @@ export function BookingLookup() {
             <div>
               <div className="text-xs text-muted">Vehicle</div>
               <div className="text-sm font-medium text-ink">{b.vehicleDetails}</div>
-              <div className="text-xs text-muted">{vehicle.name}</div>
+              <div className="text-xs text-muted">{vehicle?.name || 'Unknown Vehicle Type'}</div>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-100 text-accent-600 dark:bg-accent-900/30 dark:text-accent-400 shrink-0"><ClockIcon size={18} /></div>
             <div>
               <div className="text-xs text-muted">Service</div>
-              <div className="text-sm font-medium text-ink">{bServices.map(s => s?.name).join(', ')}</div>
+              <div className="text-sm font-medium text-ink">
+                {bServices.length > 0 ? bServices.map(s => s?.name).join(', ') : 'Legacy Service'}
+              </div>
               <div className="text-xs text-muted">{formatPrice(bServices.reduce((a, s) => a + (s?.price || 0), 0))} · {formatDuration(bServices.reduce((a, s) => a + (s?.duration || 0), 0))}</div>
             </div>
           </div>
@@ -126,6 +131,10 @@ export function BookingLookup() {
         )}
       </div>
     )
+  }
+
+  if (user && user.role === 'customer') {
+    return <Navigate to="/dashboard" replace />
   }
 
   return (

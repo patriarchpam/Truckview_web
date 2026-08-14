@@ -4,31 +4,43 @@ import {
 import { api } from '../lib/api'
 import { supabase } from '../lib/supabase'
 
-interface AdminUser { name: string; email: string }
+interface AppUser { name: string; email: string; role: 'admin' | 'customer'; profileId?: string }
 interface AuthValue {
-  user: AdminUser | null
+  user: AppUser | null
   ready: boolean
   login: (email: string, password: string) => Promise<void>
+  loginWithGoogle: () => Promise<void>
+  signup: (customer: { name: string; email: string; phone: string; password: string }) => Promise<void>
   logout: () => void
 }
 
 const AuthContext = createContext<AuthValue | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AdminUser | null>(null)
+  const [user, setUser] = useState<AppUser | null>(null)
   const [ready, setReady] = useState(false)
+
+  const resolveUser = async (userObj: any) => {
+    try {
+      const u = await api.getCurrentUser(userObj)
+      setUser(u)
+    } catch {
+      setUser({ name: 'Admin', email: userObj.email, role: 'admin' }) // fallback
+    }
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user?.email) {
-        setUser({ name: 'Admin', email: session.user.email })
+        resolveUser(session.user).finally(() => setReady(true))
+      } else {
+        setReady(true)
       }
-      setReady(true)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user?.email) {
-        setUser({ name: 'Admin', email: session.user.email })
+        resolveUser(session.user)
       } else {
         setUser(null)
       }
@@ -41,12 +53,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await api.login(email, password)
   }, [])
 
+  const loginWithGoogle = useCallback(async () => {
+    await api.loginWithGoogle()
+  }, [])
+
+  const signup = useCallback(async (customer: { name: string; email: string; phone: string; password: string }) => {
+    await api.customerSignup(customer)
+  }, [])
+
   const logout = useCallback(async () => {
     await supabase.auth.signOut()
     setUser(null)
   }, [])
 
-  const value = useMemo(() => ({ user, ready, login, logout }), [user, ready, login, logout])
+  const value = useMemo(() => ({ user, ready, login, loginWithGoogle, signup, logout }), [user, ready, login, loginWithGoogle, signup, logout])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

@@ -6,9 +6,11 @@ import { addDays } from 'date-fns'
 import { toast } from 'sonner'
 
 import { useStore } from '../contexts/StoreContext'
+import { useAuth } from '../contexts/AuthContext'
 import { useSubscription } from '../contexts/SubscriptionContext'
 import { Button, ButtonLink } from '../components/ui/Button'
 import { Field, Input, Select, Textarea } from '../components/ui/Field'
+import { vehicleMakes } from '../data/vehicleMakes'
 import type { BookingDraft, SlotAvailability } from '../types'
 import { formatTime, formatPrice, formatDuration, formatShortDate, toISODate } from '../utils/format'
 
@@ -22,13 +24,18 @@ export function BookService() {
   const preService = (location.state as { serviceId?: string })?.serviceId
   const preVehicle = (location.state as { vehicleTypeId?: string })?.vehicleTypeId
 
+  const { user, ready } = useAuth()
+  const searchParams = new URLSearchParams(location.search)
+  const preCar = searchParams.get('car')
+
   const [step, setStep] = useState(1)
   const [serviceIds, setServiceIds] = useState<string[]>(preService ? [preService] : [])
   const [vehicleTypeId, setVehicleTypeId] = useState(preVehicle ?? '')
-  const [vehicleDetails, setVehicleDetails] = useState('')
-  const [name, setName] = useState('')
+  const [vehicleModel, setVehicleModel] = useState('')
+  const [vehicleDetails, setVehicleDetails] = useState(preCar ?? '')
+  const [name, setName] = useState(user?.name || '')
   const [phone, setPhone] = useState('')
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(user?.email || '')
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
   const [notes, setNotes] = useState('')
@@ -63,8 +70,16 @@ export function BookService() {
     if (date) void loadSlots(date)
   }, [date, loadSlots])
 
-  const canProceed1 = serviceIds.length > 0 && vehicleTypeId && vehicleDetails.trim()
-  const canProceed2 = name.trim() && phone.trim() && email.trim()
+  useEffect(() => {
+    if (user && !name) {
+      setName(user.name)
+      setEmail(user.email)
+    }
+  }, [user, name])
+
+  const isValidPhone = phone.replace(/\\D/g, '').length >= 10
+  const canProceed1 = serviceIds.length > 0 && vehicleTypeId && vehicleModel && vehicleDetails.trim()
+  const canProceed2 = name.trim() && isValidPhone && email.trim()
   const canProceed3 = date && time
 
   const handleSubmit = async () => {
@@ -77,7 +92,7 @@ export function BookService() {
       const draft: BookingDraft = {
         customer: { name: name.trim(), phone: phone.trim(), email: email.trim() },
         vehicleTypeId,
-        vehicleDetails: vehicleDetails.trim(),
+        vehicleDetails: `${vehicleModel} - ${vehicleDetails.trim()}`,
         serviceIds,
         date,
         time,
@@ -94,6 +109,30 @@ export function BookService() {
     }
   }
 
+  if (!ready) {
+    return <div className="py-20 text-center text-muted">Loading...</div>
+  }
+
+  if (!user) {
+    return (
+      <div className="py-20 px-4">
+        <div className="mx-auto max-w-md text-center bg-surface p-8 rounded-3xl shadow-card border border-line">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-warning-100 text-warning-600 dark:bg-warning-900/30 dark:text-warning-500">
+            <AlertCircleIcon size={32} />
+          </div>
+          <h2 className="mb-2 text-2xl font-bold text-ink">Login Required</h2>
+          <p className="text-muted mb-8">
+            To ensure proper tracking and record keeping, you must be logged into your account to book a service.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <ButtonLink to="/login" variant="primary">Login to your Account</ButtonLink>
+            <ButtonLink to="/signup" variant="outline">Create an Account</ButtonLink>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (confirmed) {
     return (
       <div className="py-20">
@@ -108,8 +147,12 @@ export function BookService() {
           <p className="mt-2 text-3xl font-bold text-accent-500">{confirmed.reference}</p>
           <p className="mt-4 text-sm text-muted">Save this reference to track or manage your booking. We'll send a confirmation to your email.</p>
           <div className="mt-8 flex justify-center gap-4">
+            {user ? (
+              <ButtonLink variant="secondary" to="/dashboard">View Dashboard</ButtonLink>
+            ) : (
+              <ButtonLink variant="secondary" to="/booking">Track Booking</ButtonLink>
+            )}
             <ButtonLink to="/">Back to Home</ButtonLink>
-            <ButtonLink to="/booking" variant="secondary">Track Booking</ButtonLink>
           </div>
         </motion.div>
       </div>
@@ -161,16 +204,30 @@ export function BookService() {
           {step === 1 && (
             <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.3 }} className="space-y-5">
               <h2 className="text-lg font-semibold text-ink">1. Select Service & Vehicle</h2>
-              <Field label="Vehicle Type" required htmlFor="vehicleType">
-                <Select id="vehicleType" value={vehicleTypeId} onChange={(e) => { setVehicleTypeId(e.target.value); setServiceIds([]) }}>
-                  <option value="">Choose vehicle type</option>
-                  {activeVehicles.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
-                </Select>
-              </Field>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Field label="Vehicle Make" required htmlFor="vehicleType">
+                  <Select id="vehicleType" value={vehicleTypeId} onChange={(e) => { 
+                    setVehicleTypeId(e.target.value); 
+                    setVehicleModel('');
+                    setServiceIds([]); 
+                  }}>
+                    <option value="">Choose make...</option>
+                    {activeVehicles.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+                  </Select>
+                </Field>
+                <Field label="Vehicle Model" required htmlFor="vehicleModel">
+                  <Select id="vehicleModel" value={vehicleModel} onChange={(e) => setVehicleModel(e.target.value)} disabled={!vehicleTypeId}>
+                    <option value="">Choose model...</option>
+                    {vehicleTypeId && (vehicleMakes as any)[activeVehicles.find(v => v.id === vehicleTypeId)?.name || '']?.map((m: string) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
               <div>
                 <label className="block text-sm font-medium text-ink-soft mb-2">Services <span className="text-red-500">*</span></label>
                 {!vehicleTypeId ? (
-                  <p className="text-sm text-muted">Please select a vehicle type first.</p>
+                  <p className="text-sm text-muted">Please select a vehicle make first.</p>
                 ) : (
                   <div className="grid gap-2">
                     {availableServices.map(s => {
@@ -197,8 +254,8 @@ export function BookService() {
                   </div>
                 )}
               </div>
-              <Field label="Vehicle Details" required htmlFor="vehicleDetails" hint="e.g. Toyota Camry 2020 — Silver">
-                <Input id="vehicleDetails" value={vehicleDetails} onChange={(e) => setVehicleDetails(e.target.value)} placeholder="Make, model, year, colour" />
+              <Field label="Year & Colour" required htmlFor="vehicleDetails" hint="e.g. 2020 — Silver">
+                <Input id="vehicleDetails" value={vehicleDetails} onChange={(e) => setVehicleDetails(e.target.value)} placeholder="Year, colour, reg number" />
               </Field>
               <div className="flex justify-end">
                 <Button onClick={() => setStep(2)} disabled={!canProceed1}>Continue</Button>
@@ -216,6 +273,9 @@ export function BookService() {
               <div className="grid gap-5 sm:grid-cols-2">
                 <Field label="Phone" required htmlFor="phone">
                   <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0803 000 0000" />
+                  {phone.trim() && !isValidPhone && (
+                    <p className="text-xs text-danger-500 mt-1">Please enter a valid phone number (at least 10 digits).</p>
+                  )}
                 </Field>
                 <Field label="Email" required htmlFor="email">
                   <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
@@ -253,8 +313,16 @@ export function BookService() {
                   <label className="block text-sm font-medium text-ink-soft mb-2">Select a time</label>
                   {loadingSlots ? (
                     <div className="flex items-center gap-2 text-sm text-muted py-4"><div className="h-4 w-4 animate-spin rounded-full border-2 border-accent-500 border-t-transparent" /> Loading slots…</div>
-                  ) : slots.length === 0 ? (
-                    <p className="text-sm text-muted py-4">No slots available on this date. The workshop may be closed.</p>
+                  ) : slots.length === 0 || slots.every(s => !s.available) ? (
+                    <div className="py-4 space-y-3">
+                      <p className="text-sm text-muted">No slots available on this date.</p>
+                      <div className="p-4 bg-warning-50 dark:bg-warning-900/10 border border-warning-200 dark:border-warning-900/30 rounded-xl">
+                        <p className="text-sm font-medium text-warning-800 dark:text-warning-300">Is it urgent or an emergency?</p>
+                        <p className="text-sm text-warning-700 dark:text-warning-400 mt-1">
+                          <a href="tel:+2348000000000" className="font-bold underline hover:text-warning-900 dark:hover:text-warning-200">Call or Text us instantly</a> and we'll see how we can squeeze you in!
+                        </p>
+                      </div>
+                    </div>
                   ) : (
                     <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                       {slots.map((s) => (

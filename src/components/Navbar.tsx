@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MenuIcon, XIcon, MoonIcon, SunIcon, PhoneIcon } from 'lucide-react'
+import { MenuIcon, XIcon, MoonIcon, SunIcon, PhoneIcon, UserIcon } from 'lucide-react'
 import { useTheme } from '../contexts/ThemeContext'
+import { useAuth } from '../contexts/AuthContext'
 import { cn } from '../utils/format'
 
 const links = [
@@ -16,6 +17,7 @@ const links = [
 
 export function Navbar() {
   const { theme, toggleTheme } = useTheme()
+  const { user } = useAuth()
   const [open, setOpen] = useState(false)
 
   return (
@@ -70,12 +72,30 @@ export function Navbar() {
           <button onClick={toggleTheme} className="p-2 rounded-lg text-muted hover:text-ink hover:bg-surface-2 transition-colors">
             {theme === 'dark' ? <SunIcon size={18} /> : <MoonIcon size={18} />}
           </button>
-          <Link
-            to="/book"
-            className="hidden sm:inline-flex items-center gap-2 rounded-xl bg-accent-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-600 shadow-[0_6px_20px_-10px_rgba(249,115,22,0.9)] transition-all active:scale-[0.98]"
-          >
-            Book a Service
-          </Link>
+          
+          <div className="hidden sm:flex items-center gap-2">
+            {user ? (
+              <Link to={user.role === 'admin' ? '/admin' : '/dashboard'} className="p-2 rounded-lg text-muted hover:text-ink hover:bg-surface-2 transition-colors">
+                <UserIcon size={20} />
+              </Link>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link to="/login" className="px-3.5 py-2 rounded-lg text-sm font-medium text-ink-soft hover:text-ink hover:bg-surface-2 transition-colors">
+                  Login
+                </Link>
+                <Link to="/signup" className="px-3.5 py-2 rounded-lg text-sm font-medium text-accent-600 bg-accent-50 hover:bg-accent-100 transition-colors">
+                  Sign up
+                </Link>
+              </div>
+            )}
+            <Link
+              to="/book"
+              className="inline-flex items-center gap-2 rounded-xl bg-accent-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-600 shadow-[0_6px_20px_-10px_rgba(249,115,22,0.9)] transition-all active:scale-[0.98]"
+            >
+              Book a Service
+            </Link>
+          </div>
+
           <button onClick={() => setOpen(!open)} className="lg:hidden p-2 rounded-lg text-muted hover:text-ink hover:bg-surface-2">
             {open ? <XIcon size={20} /> : <MenuIcon size={20} />}
           </button>
@@ -109,13 +129,31 @@ export function Navbar() {
                   {l.label}
                 </NavLink>
               ))}
-              <Link
-                to="/book"
-                onClick={() => setOpen(false)}
-                className="block mt-3 text-center rounded-xl bg-accent-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-600"
-              >
-                Book a Service
-              </Link>
+              <div className="border-t border-line mt-2 pt-2 pb-2">
+                {user ? (
+                  <Link to={user.role === 'admin' ? '/admin' : '/dashboard'} onClick={() => setOpen(false)} className="block px-4 py-2.5 rounded-lg text-sm font-medium text-ink-soft hover:text-ink hover:bg-surface-2 transition-colors">
+                    Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link to="/login" onClick={() => setOpen(false)} className="block px-4 py-2.5 rounded-lg text-sm font-medium text-ink-soft hover:text-ink hover:bg-surface-2 transition-colors">
+                      Login
+                    </Link>
+                    <Link to="/signup" onClick={() => setOpen(false)} className="block px-4 py-2.5 rounded-lg text-sm font-medium text-accent-600 hover:text-accent-700 hover:bg-accent-50 transition-colors">
+                      Sign up
+                    </Link>
+                  </>
+                )}
+              </div>
+              <div className="pt-2 px-2 pb-4 sm:hidden">
+                <Link
+                  to="/book"
+                  onClick={() => setOpen(false)}
+                  className="flex w-full justify-center items-center gap-2 rounded-xl bg-accent-500 px-5 py-3 text-sm font-medium text-white hover:bg-accent-600 active:scale-[0.98]"
+                >
+                  Book a Service
+                </Link>
+              </div>
             </div>
           </motion.div>
         )}

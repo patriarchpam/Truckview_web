@@ -66,68 +66,16 @@ export const subscriptionPlans: SubscriptionPlan[] = [
 /*  Vehicle types                                                     */
 /* ----------------------------------------------------------------- */
 
-export const vehicleTypes: VehicleType[] = [
-  {
-    id: 'vt-car',
-    slug: 'cars',
-    name: 'Cars',
-    description:
-      'Sedans, hatchbacks and saloons. Everyday servicing, diagnostics and detailing for personal cars.',
-    image:
-      'https://images.unsplash.com/photo-1549317661-bd32c8ce0afe?w=600&h=400&fit=crop',
-    active: true,
-  },
-  {
-    id: 'vt-suv',
-    slug: 'suvs',
-    name: 'SUVs',
-    description:
-      'Family and off-road SUVs. Heavier suspension, brakes and drivetrain work handled by specialists.',
-    image:
-      'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=600&h=400&fit=crop',
-    active: true,
-  },
-  {
-    id: 'vt-van',
-    slug: 'vans',
-    name: 'Vans',
-    description:
-      'Compact and passenger vans. Keep the vehicles your business depends on moving every day.',
-    image:
-      'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=600&h=400&fit=crop',
-    active: true,
-  },
-  {
-    id: 'vt-truck',
-    slug: 'trucks',
-    name: 'Trucks',
-    description:
-      'Pickups and light trucks. Servicing, inspections and tyre work sized for heavier vehicles.',
-    image:
-      'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&h=400&fit=crop',
-    active: true,
-  },
-  {
-    id: 'vt-bus',
-    slug: 'buses',
-    name: 'Buses',
-    description:
-      'Minibuses and shuttles. Safety inspections and scheduled maintenance for passenger transport.',
-    image:
-      'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&h=400&fit=crop',
-    active: true,
-  },
-  {
-    id: 'vt-commercial',
-    slug: 'commercial-vehicles',
-    name: 'Commercial Vehicles',
-    description:
-      'Utility and work vehicles. Flexible scheduling so your operation keeps running while we service.',
-    image:
-      'https://images.unsplash.com/photo-1586191582056-88e36bbaef66?w=600&h=400&fit=crop',
-    active: true,
-  },
-]
+import { vehicleMakes } from './vehicleMakes'
+
+export const vehicleTypes: VehicleType[] = Object.keys(vehicleMakes).map((make) => ({
+  id: `vt-${make.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+  slug: make.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+  name: make,
+  description: `Professional servicing and repairs for ${make} vehicles.`,
+  image: 'https://images.unsplash.com/photo-1542282088-fe8426682b8f?w=600&h=400&fit=crop', // generic placeholder
+  active: true,
+}))
 
 const allVehicles = vehicleTypes.map((v) => v.id)
 
@@ -138,118 +86,215 @@ const allVehicles = vehicleTypes.map((v) => v.id)
 export const services: Service[] = [
   {
     id: 'svc-maintenance',
-    slug: 'routine-maintenance',
-    name: 'Routine Maintenance',
-    description:
-      'Scheduled servicing — oil and filters, fluids, belts and a full health check by certified technicians.',
+    slug: 'general-maintenance',
+    name: 'General Maintenance',
+    description: 'Routine car servicing to keep your vehicle running smoothly and prevent major breakdowns.',
     details: [
-      'Engine oil and filter replacement',
-      'Fluid top-up and level check',
-      'Belts, hoses and battery check',
-      'Digital service report',
+      'Oil Change & Oil Filter Replacement',
+      'Routine Car Servicing',
+      'Vehicle Inspection',
+      'Preventive Maintenance',
+      'Fluid Top-Up & Replacement',
+      'Air Filter Replacement',
+      'Cabin Filter Replacement',
+      'Spark Plug Replacement',
+      'Timing Belt Replacement',
+      'Fuel Filter Replacement'
     ],
-    image:
-      'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=600&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=600&h=400&fit=crop',
     vehicleTypeIds: allVehicles,
-    price: 45000,
+    price: 35000,
     duration: 120,
     active: true,
   },
   {
-    id: 'svc-inspection',
-    slug: 'vehicle-inspection',
-    name: 'Vehicle Inspection',
-    description:
-      'A 60-point condition and safety inspection with a documented report — ideal before a purchase or renewal.',
+    id: 'svc-engine',
+    slug: 'engine-services',
+    name: 'Engine Services',
+    description: 'Comprehensive engine diagnostics, repair, and overhauls for optimal performance.',
     details: [
-      '60-point safety and condition check',
-      'Brake, tyre and suspension review',
-      'Photographed digital report',
-      'Recommended next steps',
+      'Engine Diagnostics',
+      'Engine Repair',
+      'Engine Overhaul',
+      'Engine Rebuild',
+      'Engine Replacement',
+      'Engine Tuning',
+      'Overheating Diagnosis & Repair',
+      'Radiator Repair/Replacement',
+      'Water Pump Replacement',
+      'Cooling System Repair',
+      'Fuel Injector Cleaning/Repair',
+      'Engine Mount Replacement'
     ],
-    image:
-      'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=600&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1580894894513-541e068a3e2b?w=600&h=400&fit=crop',
+    vehicleTypeIds: allVehicles,
+    price: 85000,
+    duration: 240,
+    active: true,
+  },
+  {
+    id: 'svc-transmission',
+    slug: 'transmission',
+    name: 'Transmission',
+    description: 'Expert care for automatic and manual transmissions, clutches, and gearboxes.',
+    details: [
+      'Transmission Diagnostics',
+      'Automatic Transmission Repair',
+      'Manual Transmission Repair',
+      'Transmission Fluid Change',
+      'Gearbox Repair/Replacement',
+      'Clutch Replacement',
+      'Clutch Repair',
+      'Gear Shifting Problems',
+      'Differential Repair'
+    ],
+    image: 'https://images.unsplash.com/photo-1605273398453-39f50f22ff60?w=600&h=400&fit=crop',
+    vehicleTypeIds: allVehicles,
+    price: 120000,
+    duration: 300,
+    active: true,
+  },
+  {
+    id: 'svc-brakes',
+    slug: 'brakes',
+    name: 'Brakes',
+    description: 'Complete brake system inspections, pad replacements, and ABS diagnostics.',
+    details: [
+      'Brake Inspection',
+      'Brake Pad Replacement',
+      'Brake Disc/Rotor Replacement',
+      'Brake Shoe Replacement',
+      'Brake Fluid Replacement',
+      'ABS Diagnostics & Repair',
+      'Brake Caliper Repair',
+      'Handbrake Repair'
+    ],
+    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=400&fit=crop',
+    vehicleTypeIds: allVehicles,
+    price: 45000,
+    duration: 90,
+    active: true,
+  },
+  {
+    id: 'svc-suspension',
+    slug: 'suspension-steering',
+    name: 'Suspension & Steering',
+    description: 'Specialized repairs for shocks, struts, control arms, and steering systems.',
+    details: [
+      'Suspension Inspection',
+      'Shock Absorber Replacement',
+      'Strut Replacement',
+      'Ball Joint Replacement',
+      'Control Arm Replacement',
+      'Bushing Replacement',
+      'Tie Rod Replacement',
+      'Steering Rack Repair',
+      'Power Steering Repair',
+      'Wheel Alignment',
+      'Wheel Balancing'
+    ],
+    image: 'https://images.unsplash.com/photo-1579824225381-8b2b95b5c92c?w=600&h=400&fit=crop',
+    vehicleTypeIds: allVehicles,
+    price: 65000,
+    duration: 180,
+    active: true,
+  },
+  {
+    id: 'svc-electrical',
+    slug: 'electrical-diagnostics',
+    name: 'Electrical & Diagnostics',
+    description: 'Computer OBD scans, wiring repairs, and complete electrical fault diagnosis.',
+    details: [
+      'Computer Diagnostics / OBD Scan',
+      'Electrical Fault Diagnosis',
+      'Battery Testing & Replacement',
+      'Alternator Repair/Replacement',
+      'Starter Motor Repair',
+      'Wiring Repair',
+      'Fuse & Relay Replacement',
+      'Dashboard Warning Light Diagnosis',
+      'Sensor Replacement',
+      'ECU Diagnostics',
+      'Car Key/Immobilizer Diagnostics'
+    ],
+    image: 'https://images.unsplash.com/photo-1563297120-7f2df2f84cb7?w=600&h=400&fit=crop',
     vehicleTypeIds: allVehicles,
     price: 25000,
     duration: 60,
     active: true,
   },
   {
-    id: 'svc-diagnostics',
-    slug: 'engine-diagnostics',
-    name: 'Engine Diagnostics',
-    description:
-      'Computer diagnostics to trace warning lights and performance faults, with a clear explanation of findings.',
+    id: 'svc-ac',
+    slug: 'ac-cooling',
+    name: 'AC & Cooling',
+    description: 'Comprehensive A/C gas recharge, compressor repair, and cooling system maintenance.',
     details: [
-      'Full OBD fault code scan',
-      'Live sensor data review',
-      'Fault explanation in plain language',
-      'Repair quote if required',
+      'AC Diagnosis',
+      'AC Gas Recharge',
+      'AC Compressor Repair/Replacement',
+      'AC Fan & Electrical Diagnosis',
+      'Cooling System Repair'
     ],
-    image:
-      'https://images.unsplash.com/photo-1580894894513-541e068a3e2b?w=600&h=400&fit=crop',
-    vehicleTypeIds: ['vt-car', 'vt-suv', 'vt-van', 'vt-truck', 'vt-commercial'],
-    price: 20000,
-    duration: 45,
+    image: 'https://images.unsplash.com/photo-1620984920216-9bba7a5de0c1?w=600&h=400&fit=crop',
+    vehicleTypeIds: allVehicles,
+    price: 30000,
+    duration: 120,
     active: true,
   },
   {
     id: 'svc-tyres',
-    slug: 'tyres-and-brakes',
-    name: 'Tyres & Brakes',
-    description:
-      'Tyre fitting, balancing, alignment and brake replacement sized correctly for your vehicle class.',
+    slug: 'tyres-wheels',
+    name: 'Tyres & Wheels',
+    description: 'Tyre replacement, balancing, and alignment for a safe driving experience.',
     details: [
-      'Tyre fitting and balancing',
-      'Wheel alignment',
-      'Brake pad and disc replacement',
-      'Load-rated options for heavy vehicles',
+      'Tyre Replacement & Rotation',
+      'Flat Tyre Repair',
+      'Wheel Balancing & Alignment',
+      'Rim Repair',
+      'Wheel Bearing Replacement'
     ],
-    image:
-      'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=600&h=400&fit=crop',
     vehicleTypeIds: allVehicles,
-    price: null,
+    price: 20000,
+    duration: 60,
+    active: true,
+  },
+  {
+    id: 'svc-exhaust',
+    slug: 'exhaust-emissions',
+    name: 'Exhaust & Emissions',
+    description: 'Muffler replacement, exhaust leak repairs, and emission system diagnostics.',
+    details: [
+      'Exhaust & Muffler Repair/Replacement',
+      'Catalytic Converter Inspection',
+      'Exhaust Leak Repair',
+      'Oxygen Sensor Replacement',
+      'Emission System Diagnostics'
+    ],
+    image: 'https://images.unsplash.com/photo-1502877338535-466e6d60118d?w=600&h=400&fit=crop',
+    vehicleTypeIds: allVehicles,
+    price: 40000,
     duration: 90,
     active: true,
   },
   {
-    id: 'svc-detailing',
-    slug: 'detailing-and-care',
-    name: 'Detailing & Care',
-    description:
-      'Interior and exterior detailing — deep clean, paint correction and protective finish.',
+    id: 'svc-body',
+    slug: 'body-other',
+    name: 'Body & Other Services',
+    description: 'Panel beating, dent repair, painting, and roadside assistance.',
     details: [
-      'Interior deep clean',
-      'Exterior wash and decontamination',
-      'Machine polish and paint correction',
-      'Protective sealant',
+      'Minor Body Repairs & Panel Beating',
+      'Dent & Scratch Repair',
+      'Car Painting & Headlamp Restoration',
+      'Windshield Replacement',
+      'Towing & Roadside Assistance'
     ],
-    image:
-      'https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=600&h=400&fit=crop',
-    vehicleTypeIds: ['vt-car', 'vt-suv', 'vt-van', 'vt-truck'],
-    price: 35000,
+    image: 'https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=600&h=400&fit=crop',
+    vehicleTypeIds: allVehicles,
+    price: 55000,
     duration: 180,
     active: true,
-  },
-  {
-    id: 'svc-mobile',
-    slug: 'mobile-assistance',
-    name: 'Mobile Assistance',
-    description:
-      'We come to you. On-site battery, tyre and minor fault assistance at your home or workplace.',
-    details: [
-      'Technician dispatched to your location',
-      'Battery jump-start or replacement',
-      'Tyre change and puncture repair',
-      'On-site minor fault fixes',
-    ],
-    image:
-      'https://images.unsplash.com/photo-1530685932526-e58e0b5e3840?w=600&h=400&fit=crop',
-    vehicleTypeIds: allVehicles,
-    price: null,
-    duration: 60,
-    active: true,
-  },
+  }
 ]
 
 /* ----------------------------------------------------------------- */

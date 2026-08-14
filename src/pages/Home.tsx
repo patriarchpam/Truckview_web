@@ -44,7 +44,7 @@ export function Home() {
               <ButtonLink to="/book" size="lg">
                 Book a Service <ArrowRightIcon size={18} />
               </ButtonLink>
-              <ButtonLink to="/services" variant="secondary" size="lg" className="border-navy-600 text-white hover:bg-navy-800">
+              <ButtonLink to="/services" variant="outline" size="lg" className="border-navy-600 text-white hover:bg-navy-800">
                 View Services
               </ButtonLink>
             </div>
@@ -136,7 +136,7 @@ export function Home() {
             <h2 className="mt-2 text-3xl font-bold text-ink sm:text-4xl">Every Vehicle Type</h2>
           </motion.div>
           <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-            {vehicleTypes.filter((v) => v.active).map((vt, i) => (
+            {vehicleTypes.filter((v) => v.active).slice(0, 12).map((vt, i) => (
               <motion.div key={vt.id} initial="hidden" whileInView="visible" viewport={{ once: true }}
                 variants={fadeUp} transition={{ delay: i * 0.05, duration: 0.4 }}
               >
@@ -200,7 +200,7 @@ export function Home() {
               <ButtonLink to="/book" size="lg" className="bg-white text-accent-600 hover:bg-gray-100 shadow-lg">
                 <CheckCircleIcon size={18} /> Book Now
               </ButtonLink>
-              <ButtonLink to="/pricing" size="lg" variant="secondary" className="border-white/30 text-white hover:bg-white/10">
+              <ButtonLink to="/pricing" size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10">
                 View Plans
               </ButtonLink>
             </div>

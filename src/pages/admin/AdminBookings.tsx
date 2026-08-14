@@ -13,11 +13,6 @@ const statusColors: Record<string, 'warning' | 'info' | 'success' | 'danger' | '
   pending: 'warning', confirmed: 'info', 'in-progress': 'info', completed: 'success', cancelled: 'danger',
 }
 
-const nextStatus: Record<string, BookingStatus[]> = {
-  pending: ['confirmed', 'cancelled'],
-  confirmed: ['in-progress', 'cancelled'],
-  'in-progress': ['completed', 'cancelled'],
-}
 
 export function AdminBookings() {
   const { bookings, services, updateBookingStatus } = useStore()
@@ -45,12 +40,12 @@ export function AdminBookings() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <h1 className="text-2xl font-bold text-ink">Bookings</h1>
-        <div className="flex gap-1">
+        <div className="flex gap-1 overflow-x-auto pb-2 -mb-2 scrollbar-hide w-full max-w-full">
           {['all', 'pending', 'confirmed', 'in-progress', 'completed', 'cancelled'].map((f) => (
             <button key={f} onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize ${filter === f ? 'bg-accent-500 text-white' : 'text-muted hover:bg-surface-2'}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors capitalize ${filter === f ? 'bg-accent-500 text-white' : 'text-muted hover:bg-surface-2'}`}
             >{f}</button>
           ))}
         </div>
@@ -124,18 +119,18 @@ export function AdminBookings() {
               </Button>
             </div>
 
-            {nextStatus[selectedBooking.status] && (
-              <div className="flex gap-2 pt-2">
-                {nextStatus[selectedBooking.status].map((st) => (
-                  <Button key={st} size="sm" variant={st === 'cancelled' ? 'danger' : st === 'completed' ? 'success' : 'primary'}
-                    onClick={() => handleStatusChange(selectedBooking.id, st)}
-                    className="capitalize"
-                  >
-                    Mark as {st}
-                  </Button>
-                ))}
-              </div>
-            )}
+            <div className="flex flex-wrap gap-2 pt-2 border-t border-line mt-4">
+              {(['pending', 'confirmed', 'in-progress', 'completed', 'cancelled'] as BookingStatus[])
+                .filter(st => st !== selectedBooking.status)
+                .map((st) => (
+                <Button key={st} size="sm" variant={st === 'cancelled' ? 'danger' : st === 'completed' ? 'success' : 'outline'}
+                  onClick={() => handleStatusChange(selectedBooking.id, st)}
+                  className="capitalize text-xs py-1"
+                >
+                  Mark as {st}
+                </Button>
+              ))}
+            </div>
           </div>
         )}
       </Modal>

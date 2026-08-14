@@ -37,13 +37,13 @@ export function AdminServices() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-ink">Services</h1>
-          <p className="text-sm text-muted">Manage the services you offer to customers.</p>
+          <p className="text-sm text-muted mt-1">Manage the services you offer to customers.</p>
         </div>
-        <Button onClick={handleAdd}>
-          <PlusIcon size={16} /> Add Service
+        <Button onClick={handleAdd} className="w-full sm:w-auto shrink-0 justify-center">
+          <PlusIcon size={16} className="mr-2" /> Add Service
         </Button>
       </div>
 

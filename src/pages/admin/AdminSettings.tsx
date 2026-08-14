@@ -1,39 +1,49 @@
-import { useStore } from '../../contexts/StoreContext'
+import { Outlet, NavLink, useLocation } from 'react-router-dom'
+import { cn } from '../../utils/format'
+
+const settingsNav = [
+  { to: '/admin/settings', label: 'General', end: true },
+  { to: '/admin/settings/staff', label: 'Admin & Staff' },
+  { to: '/admin/settings/booking', label: 'Booking' },
+  { to: '/admin/settings/payments', label: 'Payments' },
+  { to: '/admin/settings/notifications', label: 'Notifications' },
+  { to: '/admin/settings/appearance', label: 'Appearance' },
+  { to: '/admin/settings/security', label: 'Security' },
+  { to: '/admin/settings/audit', label: 'Audit Logs' },
+]
 
 export function AdminSettings() {
-  const { settings, loading } = useStore()
-  if (loading || !settings) return <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-accent-500 border-t-transparent" /></div>
-
+  const location = useLocation()
+  
   return (
-    <div>
+    <div className="max-w-4xl">
       <h1 className="text-2xl font-bold text-ink mb-6">Settings</h1>
-      <div className="space-y-6 max-w-2xl">
-        <div className="rounded-xl border border-line bg-surface p-6 shadow-card">
-          <h2 className="text-sm font-semibold text-ink mb-4">Business Information</h2>
-          <div className="grid gap-3 sm:grid-cols-2 text-sm">
-            <div><span className="text-muted block text-xs">Name</span><span className="text-ink">{settings.business.name}</span></div>
-            <div><span className="text-muted block text-xs">Phone</span><span className="text-ink">{settings.business.phone}</span></div>
-            <div><span className="text-muted block text-xs">Email</span><span className="text-ink">{settings.business.email}</span></div>
-            <div><span className="text-muted block text-xs">Address</span><span className="text-ink">{settings.business.address}</span></div>
-          </div>
-        </div>
-        <div className="rounded-xl border border-line bg-surface p-6 shadow-card">
-          <h2 className="text-sm font-semibold text-ink mb-4">Booking Settings</h2>
-          <div className="grid gap-3 sm:grid-cols-2 text-sm">
-            <div><span className="text-muted block text-xs">Notice Hours</span><span className="text-ink">{settings.booking.noticeHours} hrs</span></div>
-            <div><span className="text-muted block text-xs">Max per Slot</span><span className="text-ink">{settings.booking.maxPerSlot}</span></div>
-          </div>
-          <div className="mt-3">
-            <span className="text-muted block text-xs mb-1">Cancellation Policy</span>
-            <p className="text-sm text-ink-soft">{settings.booking.cancellationPolicy}</p>
-          </div>
-        </div>
-        <div className="rounded-xl border border-line bg-surface p-6 shadow-card">
-          <h2 className="text-sm font-semibold text-ink mb-4">Admin Account</h2>
-          <div className="grid gap-3 sm:grid-cols-2 text-sm">
-            <div><span className="text-muted block text-xs">Name</span><span className="text-ink">{settings.account.name}</span></div>
-            <div><span className="text-muted block text-xs">Email</span><span className="text-ink">{settings.account.email}</span></div>
-          </div>
+      
+      <div className="flex flex-col md:flex-row gap-8">
+        <aside className="w-full md:w-64 shrink-0">
+          <nav className="flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-visible pb-2 md:pb-0">
+            {settingsNav.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) =>
+                  cn(
+                    'whitespace-nowrap md:whitespace-normal px-4 py-2 text-sm font-medium rounded-lg transition-colors',
+                    isActive || (item.to !== '/admin/settings' && location.pathname.startsWith(item.to))
+                      ? 'bg-accent-50 text-accent-600 dark:bg-accent-900/20 dark:text-accent-400'
+                      : 'text-ink-soft hover:bg-surface-2 hover:text-ink'
+                  )
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </aside>
+        
+        <div className="flex-1 min-w-0">
+          <Outlet />
         </div>
       </div>
     </div>

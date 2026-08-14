@@ -36,13 +36,13 @@ export function AdminVehicleTypes() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-ink">Vehicle Types</h1>
-          <p className="text-sm text-muted">Manage the types of vehicles your workshop services.</p>
+          <p className="text-sm text-muted mt-1">Manage the types of vehicles your workshop services.</p>
         </div>
-        <Button onClick={handleAdd}>
-          <PlusIcon size={16} /> Add Vehicle Type
+        <Button onClick={handleAdd} className="w-full sm:w-auto shrink-0 justify-center">
+          <PlusIcon size={16} className="mr-2" /> Add Vehicle Type
         </Button>
       </div>
       

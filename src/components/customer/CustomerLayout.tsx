@@ -1,49 +1,38 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboardIcon, CalendarIcon, WrenchIcon, TruckIcon, ClockIcon,
-  UsersIcon, FileTextIcon, SettingsIcon, LogOutIcon, ChevronLeftIcon,
-  MenuIcon, XIcon, MoonIcon, SunIcon, UserCircleIcon, CreditCardIcon,
-  StarIcon, BarChartIcon, BellIcon,
+  LayoutDashboardIcon, CalendarIcon, TruckIcon, SearchIcon, HeartIcon,
+  CreditCardIcon, BellIcon, UserIcon, HelpCircleIcon, LogOutIcon, MenuIcon, XIcon,
+  ChevronLeftIcon, ShieldIcon, SettingsIcon,
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useTheme } from '../../contexts/ThemeContext'
 import { cn } from '../../utils/format'
 
 const nav = [
-  { to: '/admin', icon: LayoutDashboardIcon, label: 'Dashboard', end: true },
-  { to: '/admin/bookings', icon: CalendarIcon, label: 'Bookings' },
-  { to: '/admin/mechanics', icon: WrenchIcon, label: 'Mechanics' },
-  { to: '/admin/customers', icon: UsersIcon, label: 'Customers' },
-  { to: '/admin/vehicle-types', icon: TruckIcon, label: 'Vehicles' },
-  { to: '/admin/services', icon: WrenchIcon, label: 'Services' },
-  { to: '/admin/payments', icon: CreditCardIcon, label: 'Payments' },
-  { to: '/admin/reviews', icon: StarIcon, label: 'Reviews' },
-  { to: '/admin/reports', icon: BarChartIcon, label: 'Reports' },
-  { to: '/admin/notifications', icon: BellIcon, label: 'Notifications' },
+  { to: '/dashboard', icon: LayoutDashboardIcon, label: 'Home', end: true },
+  { to: '/dashboard/bookings', icon: CalendarIcon, label: 'My Bookings' },
+  { to: '/dashboard/vehicles', icon: TruckIcon, label: 'My Vehicles' },
+  { to: '/dashboard/find-mechanic', icon: SearchIcon, label: 'Find a Mechanic' },
+  { to: '/dashboard/saved-mechanics', icon: HeartIcon, label: 'Saved Mechanics' },
+  { to: '/dashboard/payments', icon: CreditCardIcon, label: 'Payments' },
+  { to: '/dashboard/notifications', icon: BellIcon, label: 'Notifications' },
 ]
 
-const settingsNav = [
-  { to: '/admin/settings', label: 'General', end: true },
-  { to: '/admin/settings/staff', label: 'Admin & Staff' },
-  { to: '/admin/settings/booking', label: 'Booking' },
-  { to: '/admin/settings/payments', label: 'Payments' },
-  { to: '/admin/settings/notifications', label: 'Notifications' },
-  { to: '/admin/settings/appearance', label: 'Appearance' },
-  { to: '/admin/settings/security', label: 'Security' },
-  { to: '/admin/settings/audit', label: 'Audit Logs' },
+const profileNav = [
+  { to: '/dashboard/profile', icon: UserIcon, label: 'Personal Information', end: true },
+  { to: '/dashboard/profile/security', icon: ShieldIcon, label: 'Security' },
+  { to: '/dashboard/profile/preferences', icon: SettingsIcon, label: 'Preferences' },
 ]
 
-export function AdminLayout() {
+export function CustomerLayout() {
   const { user, ready, logout } = useAuth()
-  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
 
   if (!ready) return <div className="flex h-screen items-center justify-center text-muted">Loading…</div>
-  if (!user) { navigate('/admin/login', { replace: true }); return null }
-  if (user.role !== 'admin') { navigate('/dashboard', { replace: true }); return null }
+  if (!user) { navigate('/login', { replace: true }); return null }
+  if (user?.role === 'admin') { navigate('/admin', { replace: true }); return null }
 
   const renderNavLinks = (onClick?: () => void) => (
     <>
@@ -67,19 +56,19 @@ export function AdminLayout() {
         ))}
       </div>
       
-      <div className="pt-2 mt-2 border-t border-line">
+      <div className="pt-4 mt-4 border-t border-line">
         <button 
-          onClick={() => setSettingsOpen(!settingsOpen)}
+          onClick={() => setProfileOpen(!profileOpen)}
           className="flex items-center justify-between w-full rounded-lg px-3 py-2.5 text-sm font-medium text-ink-soft hover:bg-surface-2 hover:text-ink transition-colors"
         >
           <div className="flex items-center gap-3">
-            <SettingsIcon size={18} />
-            Settings
+            <UserIcon size={18} />
+            My Profile
           </div>
         </button>
-        {settingsOpen && (
+        {profileOpen && (
           <div className="mt-1 ml-4 pl-4 border-l border-line space-y-1">
-            {settingsNav.map((item) => (
+            {profileNav.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
@@ -99,9 +88,9 @@ export function AdminLayout() {
         )}
       </div>
 
-      <div className="pt-2 mt-2 border-t border-line space-y-1">
+      <div className="pt-4 mt-4 border-t border-line space-y-1">
         <NavLink
-          to="/admin/profile"
+          to="/dashboard/support"
           onClick={onClick}
           className={({ isActive }) =>
             cn(
@@ -110,8 +99,8 @@ export function AdminLayout() {
             )
           }
         >
-          <UserCircleIcon size={18} />
-          Admin Profile
+          <HelpCircleIcon size={18} />
+          Help & Support
         </NavLink>
       </div>
     </>
@@ -121,17 +110,12 @@ export function AdminLayout() {
     <div className="flex h-screen bg-canvas">
       {/* Sidebar */}
       <aside className="hidden lg:flex w-64 flex-col border-r border-line bg-surface">
-        <div className="flex items-center justify-between px-5 py-5 border-b border-line">
-          <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="Truck-View" className="h-9 w-auto" />
-            <div>
-              <span className="block text-sm font-bold text-ink leading-tight">Truck-View</span>
-              <span className="block text-[9px] uppercase tracking-widest text-muted">Admin</span>
-            </div>
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-line">
+          <img src="/logo.png" alt="Truck-View" className="h-9 w-auto" />
+          <div>
+            <span className="block text-sm font-bold text-ink leading-tight">Truck-View</span>
+            <span className="block text-[9px] uppercase tracking-widest text-muted">My Dashboard</span>
           </div>
-          <button onClick={toggleTheme} className="p-1.5 text-muted hover:text-ink hover:bg-surface-2 rounded-lg transition-colors">
-            {theme === 'dark' ? <SunIcon size={16} /> : <MoonIcon size={16} />}
-          </button>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           {renderNavLinks()}
@@ -157,13 +141,9 @@ export function AdminLayout() {
           </button>
           <div className="flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
             <img src="/logo.png" alt="Truck-View" className="h-7 w-auto" />
-            <span className="text-sm font-bold text-ink">Admin</span>
+            <span className="text-sm font-bold text-ink">Dashboard</span>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={toggleTheme} className="p-1.5 text-muted hover:text-ink hover:bg-surface-2 rounded-lg transition-colors">
-              {theme === 'dark' ? <SunIcon size={16} /> : <MoonIcon size={16} />}
-            </button>
-          </div>
+          <button onClick={logout} className="text-sm text-red-500 font-medium">Log out</button>
         </header>
 
         {/* Mobile nav overlay */}

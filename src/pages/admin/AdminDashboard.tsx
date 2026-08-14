@@ -3,6 +3,7 @@ import { CalendarIcon, UsersIcon, WrenchIcon, TrendingUpIcon,  } from 'lucide-re
 import { useStore } from '../../contexts/StoreContext'
 import { Badge } from '../../components/ui/Badge'
 import { formatShortDate, formatTime } from '../../utils/format'
+import { useNavigate } from 'react-router-dom'
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
 
@@ -11,6 +12,7 @@ const statusColors: Record<string, 'warning' | 'info' | 'accent' | 'success' | '
 }
 
 export function AdminDashboard() {
+  const navigate = useNavigate()
   const { bookings, services, customers, loading } = useStore()
 
   if (loading) return <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-accent-500 border-t-transparent" /></div>
@@ -65,16 +67,21 @@ export function AdminDashboard() {
             {upcoming.map((b) => {
               const svcNames = services.filter((s) => (b.serviceIds || []).includes(s.id)).map(s => s.name).join(', ')
               return (
-                <div key={b.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-surface-2 transition-colors">
+                <div key={b.id} onClick={() => navigate('/admin/bookings')} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-3.5 hover:bg-surface-2 cursor-pointer transition-colors">
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-ink truncate">{b.customer.name}</div>
+                    <div className="flex items-center justify-between sm:justify-start gap-2 mb-1 sm:mb-0">
+                      <div className="text-sm font-medium text-ink truncate">{b.customer.name}</div>
+                      <Badge variant={statusColors[b.status] || 'default'} className="shrink-0 sm:hidden">{b.status}</Badge>
+                    </div>
                     <div className="text-xs text-muted truncate">{svcNames || 'Unknown'} · {b.vehicleDetails}</div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-xs font-medium text-ink">{formatShortDate(b.date)}</div>
-                    <div className="text-xs text-muted">{formatTime(b.time)}</div>
+                  <div className="flex items-center justify-between sm:justify-end sm:text-right shrink-0 mt-2 sm:mt-0">
+                    <div>
+                      <div className="text-xs font-medium text-ink">{formatShortDate(b.date)}</div>
+                      <div className="text-xs text-muted">{formatTime(b.time)}</div>
+                    </div>
+                    <Badge variant={statusColors[b.status] || 'default'} className="shrink-0 hidden sm:inline-flex">{b.status}</Badge>
                   </div>
-                  <Badge variant={statusColors[b.status] || 'default'} className="shrink-0">{b.status}</Badge>
                 </div>
               )
             })}

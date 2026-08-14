@@ -21,6 +21,8 @@ interface StoreValue {
   refresh: () => Promise<void>
   getSlots: (dateISO: string) => Promise<SlotAvailability[]>
   createBooking: (draft: BookingDraft) => Promise<Booking>
+  createCustomer: (customer: { name: string; phone: string; email: string }) => Promise<Customer>
+  updateCustomer: (id: string, customer: { name: string; phone: string; email: string; manualBookingCount?: number | null; manualLastBookingDate?: string | null }) => Promise<void>
   updateBookingStatus: (id: ID, status: BookingStatus) => Promise<void>
   rescheduleBooking: (id: ID, date: string, time: string) => Promise<void>
   deleteVehicleType: (id: ID) => Promise<void>
@@ -98,6 +100,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const result = await api.createBooking(draft)
         await reload()
         return result.booking
+      },
+      createCustomer: async (customer) => {
+        const newCustomer = await api.createCustomer(customer)
+        await refreshCustomers()
+        return newCustomer
+      },
+      updateCustomer: async (id, customer) => {
+        await api.updateCustomer(id, customer)
+        await refreshCustomers()
       },
       updateBookingStatus: async (id, status) => { await api.updateBookingStatus(id, status); await reload() },
       rescheduleBooking: async (id, date, time) => { await api.rescheduleBooking(id, date, time); await reload() },
