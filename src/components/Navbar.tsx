@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MenuIcon, XIcon, MoonIcon, SunIcon, PhoneIcon, UserIcon } from 'lucide-react'
+import { MenuIcon, XIcon, MoonIcon, SunIcon, UserIcon } from 'lucide-react'
 import { useTheme } from '../contexts/ThemeContext'
 import { useAuth } from '../contexts/AuthContext'
 import { cn } from '../utils/format'

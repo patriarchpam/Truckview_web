@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboardIcon, CalendarIcon, WrenchIcon, TruckIcon, ClockIcon,
-  UsersIcon, FileTextIcon, SettingsIcon, LogOutIcon, ChevronLeftIcon,
+  LayoutDashboardIcon, CalendarIcon, WrenchIcon, TruckIcon,
+  UsersIcon, SettingsIcon, LogOutIcon, ChevronLeftIcon,
   MenuIcon, XIcon, MoonIcon, SunIcon, UserCircleIcon, CreditCardIcon,
   StarIcon, BarChartIcon, BellIcon,
 } from 'lucide-react'

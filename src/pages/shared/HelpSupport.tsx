@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+
 import { PhoneIcon, MailIcon, MessageCircleIcon, MapPinIcon } from 'lucide-react'
 
 export function HelpSupport() {

@@ -1,4 +1,4 @@
-import { CreditCardIcon, LandmarkIcon, PercentIcon } from 'lucide-react'
+import { CreditCardIcon, PercentIcon } from 'lucide-react'
 
 export function AdminSettingsPayments() {
   return (

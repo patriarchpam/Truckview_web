@@ -60,7 +60,7 @@ export function CustomerBookings() {
                     <div className="text-sm text-muted">{formatShortDate(b.date)}</div>
                     <div className="text-xs text-muted mt-1">Ref: {b.reference}</div>
                   </div>
-                  <Badge variant={b.status === 'completed' ? 'success' : 'error'}>{b.status}</Badge>
+                  <Badge variant={b.status === 'completed' ? 'success' : 'danger'}>{b.status}</Badge>
                 </div>
               ))
             )}

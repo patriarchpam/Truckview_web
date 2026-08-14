@@ -35,7 +35,7 @@ export function Button({ variant = 'primary', size = 'md', className, children, 
   )
 }
 
-interface ButtonLinkProps extends CommonProps, Omit<LinkProps, 'className' | 'style'> {
+interface ButtonLinkProps extends CommonProps, Omit<LinkProps, 'className' | 'style' | 'children'> {
   to: string;
 }
 
