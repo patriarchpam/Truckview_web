@@ -8,7 +8,18 @@ import { useNavigate } from 'react-router-dom'
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
 
 const statusColors: Record<string, 'warning' | 'info' | 'accent' | 'success' | 'danger'> = {
-  pending: 'warning', confirmed: 'info', 'in-progress': 'accent' as any, completed: 'success', cancelled: 'danger',
+  pending: 'warning',
+  reviewed: 'info',
+  confirmed: 'info',
+  inspection: 'info',
+  diagnosed: 'info',
+  'estimate-ready': 'warning',
+  'awaiting-approval': 'warning',
+  'in-progress': 'accent' as any,
+  'quality-check': 'accent' as any,
+  ready: 'success',
+  completed: 'success',
+  cancelled: 'danger',
 }
 
 export function AdminDashboard() {
@@ -19,7 +30,7 @@ export function AdminDashboard() {
 
   const today = new Date().toISOString().slice(0, 10)
   const todayBookings = bookings.filter((b) => b.date === today)
-  const activeBookings = bookings.filter((b) => ['pending', 'confirmed', 'in-progress'].includes(b.status))
+  const activeBookings = bookings.filter((b) => !['completed', 'cancelled'].includes(b.status))
   const stats = [
     { icon: CalendarIcon, label: "Today's Bookings", value: todayBookings.length, color: 'bg-accent-100 text-accent-600 dark:bg-accent-900/30 dark:text-accent-400' },
     { icon: TrendingUpIcon, label: 'Active Bookings', value: activeBookings.length, color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' },

@@ -4,7 +4,8 @@ import { PhoneIcon, MailIcon, MapPinIcon } from 'lucide-react'
 export function Footer() {
   return (
     <footer className="bg-navy-950 text-navy-300">
-      <div className="mx-auto max-w-7xl px-4 py-16">
+      {/* Desktop/Tablet Detailed Footer */}
+      <div className="hidden md:block mx-auto max-w-7xl px-4 py-16">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div>
@@ -89,6 +90,25 @@ export function Footer() {
 
         <div className="mt-12 border-t border-navy-800 pt-8 text-center text-xs text-navy-500">
           © {new Date().getFullYear()} Truck-View Global Ent. All rights reserved.
+        </div>
+      </div>
+
+      {/* Mobile Concise Footer */}
+      <div className="md:hidden mx-auto max-w-7xl px-4 py-8 text-center space-y-4">
+        <div className="flex flex-col items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/logo.png" alt="Truck-View" className="h-8 w-auto invert mix-blend-screen" />
+            <span className="text-base font-bold text-white leading-tight">Truck-View</span>
+          </Link>
+        </div>
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs font-medium text-navy-400">
+          <Link to="/services" className="hover:text-accent-400 transition-colors">Services</Link>
+          <Link to="/about" className="hover:text-accent-400 transition-colors">About</Link>
+          <Link to="/contact" className="hover:text-accent-400 transition-colors">Contact</Link>
+          <Link to="/pricing" className="hover:text-accent-400 transition-colors">Privacy & Terms</Link>
+        </div>
+        <div className="border-t border-navy-900/50 pt-4 text-[10px] text-navy-500">
+          © {new Date().getFullYear()} Truck-View.
         </div>
       </div>
     </footer>

@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboardIcon, CalendarIcon, TruckIcon, SearchIcon, HeartIcon,
+  LayoutDashboardIcon, CalendarIcon, TruckIcon,
   CreditCardIcon, BellIcon, UserIcon, HelpCircleIcon, LogOutIcon, MenuIcon, XIcon,
-  ChevronLeftIcon, ShieldIcon, SettingsIcon,
+  ChevronLeftIcon, ShieldIcon, SettingsIcon, SunIcon, MoonIcon,
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
+import { useTheme } from '../../contexts/ThemeContext'
 import { cn } from '../../utils/format'
 import { Chatbot } from '../Chatbot'
 
@@ -13,8 +14,6 @@ const nav = [
   { to: '/dashboard', icon: LayoutDashboardIcon, label: 'Home', end: true },
   { to: '/dashboard/bookings', icon: CalendarIcon, label: 'My Bookings' },
   { to: '/dashboard/vehicles', icon: TruckIcon, label: 'My Vehicles' },
-  { to: '/dashboard/find-mechanic', icon: SearchIcon, label: 'Find a Mechanic' },
-  { to: '/dashboard/saved-mechanics', icon: HeartIcon, label: 'Saved Mechanics' },
   { to: '/dashboard/payments', icon: CreditCardIcon, label: 'Payments' },
   { to: '/dashboard/notifications', icon: BellIcon, label: 'Notifications' },
 ]
@@ -27,6 +26,7 @@ const profileNav = [
 
 export function CustomerLayout() {
   const { user, ready, logout } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -117,6 +117,9 @@ export function CustomerLayout() {
             <span className="block text-sm font-bold text-ink leading-tight">Truck-View</span>
             <span className="block text-[9px] uppercase tracking-widest text-muted">My Dashboard</span>
           </div>
+          <button onClick={toggleTheme} className="ml-auto p-1.5 text-muted hover:text-ink hover:bg-surface-2 rounded-lg transition-colors" title="Toggle Dark/Light Mode">
+            {theme === 'dark' ? <SunIcon size={16} /> : <MoonIcon size={16} />}
+          </button>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           {renderNavLinks()}
@@ -143,7 +146,12 @@ export function CustomerLayout() {
             <img src="/logo.png" alt="Truck-View" className="h-7 w-auto" />
             <span className="text-sm font-bold text-ink">Dashboard</span>
           </div>
-          <button onClick={logout} className="text-sm text-red-500 font-medium">Log out</button>
+          <div className="flex items-center gap-2">
+            <button onClick={toggleTheme} className="p-1.5 text-muted hover:text-ink hover:bg-surface-2 rounded-lg transition-colors" title="Toggle Dark/Light Mode">
+              {theme === 'dark' ? <SunIcon size={16} /> : <MoonIcon size={16} />}
+            </button>
+            <button onClick={logout} className="text-sm text-red-500 font-medium">Log out</button>
+          </div>
         </header>
 
         {/* Mobile nav overlay */}

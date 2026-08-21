@@ -12,6 +12,7 @@ interface AuthValue {
   loginWithGoogle: () => Promise<void>
   signup: (customer: { name: string; email: string; phone: string; password: string }) => Promise<void>
   logout: () => void
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthValue | null>(null)
@@ -28,6 +29,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser({ name: 'Admin', email: userObj.email, role: 'admin' }) // fallback
     }
   }
+
+  const refreshUser = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) {
+      await resolveUser(session.user)
+    }
+  }, [])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -66,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null)
   }, [])
 
-  const value = useMemo(() => ({ user, ready, login, loginWithGoogle, signup, logout }), [user, ready, login, loginWithGoogle, signup, logout])
+  const value = useMemo(() => ({ user, ready, login, loginWithGoogle, signup, logout, refreshUser }), [user, ready, login, loginWithGoogle, signup, logout, refreshUser])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

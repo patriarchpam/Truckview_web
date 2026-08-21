@@ -13,9 +13,9 @@ export function CustomerDashboard() {
   if (!user) return null
 
   const myBookings = bookings.filter(b => b.customer.email.toLowerCase() === user.email.toLowerCase())
-  const upcomingBookings = myBookings.filter(b => ['pending', 'confirmed', 'in-progress'].includes(b.status))
+  const upcomingBookings = myBookings.filter(b => !['completed', 'cancelled'].includes(b.status))
   
-  // Parse vehicles from local storage
+  // Parse vehicles from local storage or database fallback
   let savedVehicles: any[] = []
   if (user?.profileId) {
     const stored = localStorage.getItem(`vehicles_${user.profileId}`)
@@ -46,16 +46,16 @@ export function CustomerDashboard() {
         {/* Quick Stats / Overview */}
         <div className="bg-surface p-6 rounded-2xl border border-line shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-ink">Upcoming Appointment</h2>
+            <h2 className="text-lg font-bold text-ink">Active Service Request</h2>
             <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/bookings')}>View All</Button>
           </div>
           {upcomingBookings.length > 0 ? (
             <div className="bg-surface-2 p-4 rounded-xl border border-line">
               <div className="font-semibold text-ink">{upcomingBookings[0].vehicleDetails}</div>
-              <div className="text-sm text-muted mt-1">{formatShortDate(upcomingBookings[0].date)} at {upcomingBookings[0].time}</div>
+              <div className="text-xs text-muted mt-1">Ref: {upcomingBookings[0].reference} · Preferred: {formatShortDate(upcomingBookings[0].date)} at {upcomingBookings[0].time}</div>
               <div className="mt-3 flex gap-2">
-                 <span className="px-2.5 py-1 bg-accent-100 text-accent-700 dark:bg-accent-900/30 dark:text-accent-400 text-xs font-medium rounded-full">
-                   {upcomingBookings[0].status}
+                 <span className="px-2.5 py-1 bg-accent-100 text-accent-700 dark:bg-accent-900/30 dark:text-accent-400 text-xs font-semibold uppercase tracking-wider rounded-full">
+                   {upcomingBookings[0].status.replace('-', ' ')}
                  </span>
               </div>
             </div>

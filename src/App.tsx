@@ -4,6 +4,7 @@ import { AppToaster } from './components/AppToaster'
 import { AdminLayout } from './components/admin/AdminLayout'
 import { CustomerLayout } from './components/customer/CustomerLayout'
 import { PublicLayout } from './components/PublicLayout'
+import { AuthLayout } from './components/AuthLayout'
 import { AuthProvider } from './contexts/AuthContext'
 import { StoreProvider } from './contexts/StoreContext'
 import { SubscriptionProvider } from './contexts/SubscriptionContext'
@@ -44,8 +45,6 @@ import { CustomerDashboard } from './pages/customer/CustomerDashboard'
 import { CustomerBookings } from './pages/customer/CustomerBookings'
 import { CustomerVehicles } from './pages/customer/CustomerVehicles'
 import { CustomerProfile } from './pages/customer/CustomerProfile'
-import { CustomerFindMechanic } from './pages/customer/CustomerFindMechanic'
-import { CustomerSavedMechanics } from './pages/customer/CustomerSavedMechanics'
 import { CustomerPayments } from './pages/customer/CustomerPayments'
 import { CustomerNotifications } from './pages/customer/CustomerNotifications'
 import { HelpSupport } from './pages/shared/HelpSupport'
@@ -72,18 +71,19 @@ export function App() {
                   <Route path="contact" element={<Contact />} />
                   <Route path="book" element={<BookService />} />
                   <Route path="booking" element={<BookingLookup />} />
-                  <Route path="login" element={<Login />} />
-                  <Route path="signup" element={<Signup />} />
                   <Route path="service-areas/abuja" element={<AbujaMechanic />} />
                   <Route path="*" element={<NotFound />} />
+                </Route>
+
+                <Route element={<AuthLayout />}>
+                  <Route path="login" element={<Login />} />
+                  <Route path="signup" element={<Signup />} />
                 </Route>
 
                 <Route path="/dashboard" element={<CustomerLayout />}>
                   <Route index element={<CustomerDashboard />} />
                   <Route path="bookings" element={<CustomerBookings />} />
                   <Route path="vehicles" element={<CustomerVehicles />} />
-                  <Route path="find-mechanic" element={<CustomerFindMechanic />} />
-                  <Route path="saved-mechanics" element={<CustomerSavedMechanics />} />
                   <Route path="payments" element={<CustomerPayments />} />
                   <Route path="notifications" element={<CustomerNotifications />} />
                   <Route path="profile/*" element={<CustomerProfile />} />

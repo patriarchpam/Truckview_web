@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button'
 import { Field, Input } from '../components/ui/Field'
 import { useAuth } from '../contexts/AuthContext'
 import { Truck } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function Signup() {
   const [name, setName] = useState('')
@@ -14,7 +15,7 @@ export function Signup() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const { signup, login, loginWithGoogle } = useAuth()
+  const { signup, loginWithGoogle } = useAuth()
   const navigate = useNavigate()
 
   const handleGoogleLogin = async () => {
@@ -45,8 +46,8 @@ export function Signup() {
 
     try {
       await signup({ name, email, phone, password })
-      await login(email, password)
-      navigate('/dashboard')
+      toast.success('Account created successfully! Please log in with your credentials.')
+      navigate('/login')
     } catch (err: any) {
       setError(err.message || 'Failed to create account')
     } finally {

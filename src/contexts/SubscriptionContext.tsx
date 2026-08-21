@@ -42,8 +42,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     setLoading(false)
   }, [])
 
-  const canBook = current.bookingsLimit === null || current.bookingsUsed < current.bookingsLimit
-  const remainingBookings = current.bookingsLimit === null ? null : current.bookingsLimit - current.bookingsUsed
+  const canBook = true
+  const remainingBookings = null
 
   const value = useMemo(() => ({
     plans, current, loading, canBook, remainingBookings, upgrade, refresh,

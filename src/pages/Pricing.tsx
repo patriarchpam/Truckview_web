@@ -45,7 +45,7 @@ export function Pricing() {
           <span className="text-sm font-semibold uppercase tracking-wider text-accent-500">Pricing</span>
           <h1 className="mt-2 text-3xl font-bold text-ink sm:text-4xl">Choose Your Plan</h1>
           <p className="mt-3 text-muted max-w-2xl mx-auto">
-            Start with 3 free bookings per month. Upgrade when you need more services or want premium benefits.
+            Booking services is free and unlimited for everyone. Choose a premium plan to unlock value-added maintenance benefits.
           </p>
         </motion.div>
 
@@ -57,18 +57,8 @@ export function Pricing() {
             <div className="inline-flex items-center gap-2 rounded-full bg-surface border border-line px-5 py-2.5 shadow-card">
               <span className="text-sm text-muted">Current plan:</span>
               <span className="text-sm font-semibold text-accent-500 capitalize">{current.tier}</span>
-              {current.bookingsLimit !== null && (
-                <>
-                  <span className="text-line-strong">·</span>
-                  <span className="text-sm text-muted">{current.bookingsLimit - current.bookingsUsed} bookings remaining</span>
-                </>
-              )}
-              {current.bookingsLimit === null && (
-                <>
-                  <span className="text-line-strong">·</span>
-                  <span className="text-sm text-muted">Unlimited bookings</span>
-                </>
-              )}
+              <span className="text-line-strong">·</span>
+              <span className="text-sm text-muted">Unlimited Free Bookings</span>
             </div>
           </motion.div>
         )}
@@ -98,7 +88,7 @@ export function Pricing() {
                       {plan.price > 0 && <span className="text-white/70">/month</span>}
                     </div>
                     <p className="mt-2 text-sm text-white/80">
-                      {plan.bookingsPerMonth === null ? 'Unlimited bookings' : `${plan.bookingsPerMonth} bookings per month`}
+                      Unlimited service bookings
                     </p>
                   </div>
                   <div className="flex-1 p-6">
@@ -134,10 +124,10 @@ export function Pricing() {
           <h2 className="text-2xl font-bold text-ink text-center mb-8">Frequently Asked Questions</h2>
           <div className="space-y-4">
             {[
-              { q: 'What happens when I use all my free bookings?', a: 'You can still browse services and view your booking history. To make more bookings, upgrade to the Standard or Premium plan.' },
-              { q: 'Can I downgrade my plan?', a: 'Yes, you can downgrade at any time. Your remaining bookings will be adjusted to match the new plan.' },
-              { q: 'Do bookings roll over to the next month?', a: 'No, unused bookings do not roll over. Your booking count resets at the start of each billing cycle.' },
-              { q: 'What payment methods do you accept?', a: 'We accept bank transfers, card payments, and mobile money. Contact us for corporate billing arrangements.' },
+              { q: 'Is booking a service free?', a: 'Yes! Booking a service request is free and unlimited for all users. You can book general servicing or report problems without needing any subscription.' },
+              { q: 'What do I get with standard or premium plans?', a: 'Paid subscription plans provide extra maintenance and service-discount benefits such as priority scheduling, alerts, up to 10% parts discounts, digital health reports, and roadside assistance.' },
+              { q: 'Can I cancel or downgrade my subscription?', a: 'Yes, you can upgrade, downgrade, or cancel your subscription tier at any time directly from your profile settings.' },
+              { q: 'What payment methods do you accept?', a: 'We accept bank transfers, credit/debit card payments, and mobile money. Invoices are provided for every completed service.' },
             ].map((faq) => (
               <div key={faq.q} className="rounded-xl border border-line bg-surface p-5">
                 <h3 className="text-sm font-semibold text-ink">{faq.q}</h3>

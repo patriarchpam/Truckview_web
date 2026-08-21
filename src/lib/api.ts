@@ -19,6 +19,7 @@ import type {
 } from '../types'
 import { fromISODate, toISODate } from '../utils/format'
 import * as seed from '../data/mockData' // fallback for singletons
+import { vehicleMakes } from '../data/vehicleMakes'
 
 const WEEKDAYS: Weekday[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
 
@@ -212,18 +213,17 @@ export const api = {
       profileId = newProfile.id
     }
 
-    // 2. Check subscription (mock for now on frontend, usually backend checked)
+    // 2. Check subscription (bookings are free, but we still track usage)
     const { data: sub } = await supabase.from('subscriptions').select('*').eq('profile_id', profileId).single()
-    const limit = sub?.bookings_limit ?? 3 // Default free limit
     const used = sub?.bookings_used ?? 0
-    if (limit !== null && used >= limit) {
-      throw new BookingLimitError()
-    }
 
-    // 3. Verify slot
-    const slots = await api.getSlots(draft.date)
-    const slot = slots.find((s) => s.time === draft.time)
-    if (!slot || !slot.available) throw new SlotUnavailableError()
+    // 3. Verify slot (only if it is a specific slot time like "10:00")
+    const isSpecificSlot = /^\d{2}:\d{2}$/.test(draft.time)
+    if (isSpecificSlot) {
+      const slots = await api.getSlots(draft.date)
+      const slot = slots.find((s) => s.time === draft.time)
+      if (!slot || !slot.available) throw new SlotUnavailableError()
+    }
 
     // 4. Insert booking
     const { count } = await supabase.from('bookings').select('*', { count: 'exact', head: true })
@@ -452,9 +452,11 @@ export const api = {
       throw new Error('A customer with this email already exists.');
     }
     
-    const { data: existingPhone } = await supabase.from('profiles').select('id').eq('phone', customer.phone).single();
-    if (existingPhone && existingPhone.id !== id) {
-      throw new Error('A customer with this phone number already exists.');
+    if (customer.phone && customer.phone.trim() !== '') {
+      const { data: existingPhone } = await supabase.from('profiles').select('id').eq('phone', customer.phone.trim()).limit(1).maybeSingle();
+      if (existingPhone && existingPhone.id !== id) {
+        throw new Error('A customer with this phone number already exists.');
+      }
     }
 
     const { error } = await supabase.from('profiles').update({
@@ -547,5 +549,95 @@ export const api = {
   async updateSubscription(tier: 'free' | 'standard' | 'premium'): Promise<UserSubscription> {
     const plan = seed.subscriptionPlans.find((p) => p.tier === tier)!
     return { tier, bookingsUsed: 0, bookingsLimit: plan.bookingsPerMonth, renewsAt: toISODate(new Date()) }
+  },
+
+  async getSavedVehicles(profileId: string): Promise<any[]> {
+    const { data, error } = await supabase.from('vehicles').select('*').eq('profile_id', profileId).order('created_at', { ascending: false })
+    if (error) {
+      console.warn("DB saved vehicles read failed:", error.message)
+      throw error
+    }
+    return (data || []).map(v => ({
+      id: v.id,
+      profileId: v.profile_id,
+      make: v.make,
+      model: v.model,
+      year: v.year,
+      color: v.color || '',
+      plateNumber: v.plate_number || '',
+      details: `${v.make} ${v.model} ${v.year}${v.plate_number ? ' - ' + v.plate_number : ''}`
+    }))
+  },
+
+  async saveVehicle(v: { id?: string; profileId: string; make: string; model: string; year: number; color?: string; plateNumber?: string }): Promise<any> {
+    const payload = {
+      profile_id: v.profileId,
+      make: v.make,
+      model: v.model,
+      year: v.year,
+      color: v.color || null,
+      plate_number: v.plateNumber || null
+    }
+    let res
+    if (v.id) {
+      res = await supabase.from('vehicles').update(payload).eq('id', v.id).select().single()
+    } else {
+      res = await supabase.from('vehicles').insert(payload).select().single()
+    }
+    if (res.error) throw new Error(res.error.message)
+    return {
+      id: res.data.id,
+      profileId: res.data.profile_id,
+      make: res.data.make,
+      model: res.data.model,
+      year: res.data.year,
+      color: res.data.color || '',
+      plateNumber: res.data.plate_number || '',
+      details: `${res.data.make} ${res.data.model} ${res.data.year}${res.data.plate_number ? ' - ' + res.data.plate_number : ''}`
+    }
+  },
+
+  async deleteVehicle(id: string): Promise<void> {
+    const { error } = await supabase.from('vehicles').delete().eq('id', id)
+    if (error) throw new Error(error.message)
+  },
+
+  async getVehicleModels(makeId: string): Promise<string[]> {
+    const { data, error } = await supabase.from('vehicle_models').select('name').eq('make_id', makeId).eq('active', true)
+    if (error || !data || data.length === 0) {
+      const makeName = makeId.startsWith('vt-') ? makeId.substring(3).toLowerCase() : makeId.toLowerCase()
+      const key = Object.keys(vehicleMakes).find(k => k.toLowerCase() === makeName.replace(/-/g, ' '))
+      return key ? (vehicleMakes as any)[key] : []
+    }
+    return data.map(d => d.name)
+  },
+
+  async getNotifications(profileId: string): Promise<any[]> {
+    const { data, error } = await supabase.from('notifications').select('*').eq('profile_id', profileId).order('created_at', { ascending: false })
+    if (error) {
+      console.warn("DB notifications read failed:", error.message)
+      throw error
+    }
+    return data || []
+  },
+
+  async createNotification(profileId: string, title: string, message: string, type: 'info' | 'success' | 'warning' = 'info'): Promise<any> {
+    const payload = {
+      profile_id: profileId,
+      title,
+      message,
+      type
+    }
+    const { data, error } = await supabase.from('notifications').insert(payload).select().single()
+    if (error) {
+      console.warn("DB notification insert failed:", error.message)
+      throw error
+    }
+    return data
+  },
+
+  async markNotificationsRead(profileId: string): Promise<void> {
+    const { error } = await supabase.from('notifications').update({ read: true }).eq('profile_id', profileId)
+    if (error) throw error
   },
 }
