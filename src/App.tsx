@@ -31,6 +31,7 @@ import { AdminMechanics } from './pages/admin/AdminMechanics'
 import { AdminPayments } from './pages/admin/AdminPayments'
 import { AdminReviews } from './pages/admin/AdminReviews'
 import { AdminReports } from './pages/admin/AdminReports'
+import { AdminTrash } from './pages/admin/AdminTrash'
 import { AdminNotifications } from './pages/admin/AdminNotifications'
 import { AdminProfile } from './pages/admin/AdminProfile'
 import { AdminSettingsStaff } from './pages/admin/AdminSettingsStaff'
@@ -101,6 +102,7 @@ export function App() {
                   <Route path="mechanics" element={<AdminMechanics />} />
                   <Route path="payments" element={<AdminPayments />} />
                   <Route path="reviews" element={<AdminReviews />} />
+                  <Route path="trash" element={<AdminTrash />} />
                   <Route path="reports" element={<AdminReports />} />
                   <Route path="notifications" element={<AdminNotifications />} />
                   <Route path="support" element={<HelpSupport />} />

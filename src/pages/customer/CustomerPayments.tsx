@@ -5,6 +5,8 @@ import { useStore } from '../../contexts/StoreContext'
 import { api } from '../../lib/api'
 import { formatPrice } from '../../utils/format'
 import { QuoteDocumentPreview } from '../../components/admin/QuoteDocumentPreview'
+import { toast } from 'sonner'
+import { Button } from '../../components/ui/Button'
 
 export function CustomerPayments() {
   const { user } = useAuth()
@@ -53,6 +55,20 @@ export function CustomerPayments() {
     fetchInvoices()
   }, [user, bookings, services])
 
+  const handleUpdatePayment = async (inv: any, status: 'pending' | 'partial' | 'full') => {
+    try {
+      await api.saveQuote({ ...inv.quote, paymentStatus: status, paymentConfirmedByAdmin: false })
+      toast.success('Payment status updated')
+      // re-fetch or update local state
+      setInvoices(invoices.map(i => i.id === inv.id ? { 
+        ...i, 
+        quote: { ...i.quote, paymentStatus: status, paymentConfirmedByAdmin: false } 
+      } : i))
+    } catch (err) {
+      toast.error('Failed to update payment status')
+    }
+  }
+
   if (!user) return null
 
   return (
@@ -77,7 +93,10 @@ export function CustomerPayments() {
             </div>
             <span className="text-xs font-medium bg-accent-50 text-accent-700 px-2 py-1 rounded">Default</span>
           </div>
-          <button className="text-sm font-medium text-accent-600 hover:text-accent-700">
+          <button 
+            className="text-sm font-medium text-accent-600 hover:text-accent-700"
+            onClick={() => toast.info('Adding payment methods will be supported soon.')}
+          >
             + Add Payment Method
           </button>
         </div>
@@ -123,9 +142,25 @@ export function CustomerPayments() {
                         </span>
                       </td>
                       <td className="p-4 text-right">
-                        <button onClick={() => setSelectedInvoice(inv)} className="text-accent-600 hover:text-accent-700 font-semibold inline-flex items-center gap-1 text-sm">
-                          <DownloadIcon size={14} /> PDF
-                        </button>
+                        <div className="flex items-center justify-end gap-3">
+                          {inv.quote.status === 'accepted' && (
+                            <div className="flex items-center gap-2">
+                              {(!inv.quote.paymentStatus || inv.quote.paymentStatus === 'unpaid') ? (
+                                <>
+                                  <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => handleUpdatePayment(inv, 'partial')}>Pay Partial</Button>
+                                  <Button size="sm" className="h-7 text-xs" onClick={() => handleUpdatePayment(inv, 'full')}>Pay Full</Button>
+                                </>
+                              ) : (
+                                <span className="text-xs text-muted italic">
+                                  {inv.quote.paymentConfirmedByAdmin ? 'Payment Confirmed' : `Pending ${inv.quote.paymentStatus} confirmation`}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          <button onClick={() => setSelectedInvoice(inv)} className="text-accent-600 hover:text-accent-700 font-semibold inline-flex items-center gap-1 text-sm">
+                            <DownloadIcon size={14} /> PDF
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

@@ -4,7 +4,7 @@ import {
 import { api } from '../lib/api'
 import { supabase } from '../lib/supabase'
 
-interface AppUser { name: string; email: string; role: 'admin' | 'customer'; profileId?: string }
+interface AppUser { name: string; email: string; role: 'admin' | 'customer'; profileId?: string; phone?: string }
 interface AuthValue {
   user: AppUser | null
   ready: boolean

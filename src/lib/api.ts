@@ -262,6 +262,13 @@ export const api = {
 
   async updateBookingStatus(id: ID, status: BookingStatus): Promise<Booking[]> {
     await supabase.from('bookings').update({ status }).eq('id', id)
+    
+    // Notify customer
+    const { data: b } = await supabase.from('bookings').select('profile_id, reference').eq('id', id).single()
+    if (b && b.profile_id) {
+      await this.createNotification(b.profile_id, 'Service Status Updated', `Your service request #${b.reference} is now marked as: ${status}.`, 'info')
+    }
+
     const { bookings } = await this.getBootstrap()
     return bookings
   },
@@ -339,6 +346,8 @@ export const api = {
       total: data.total,
       comments: data.comments,
       status: data.status,
+      paymentStatus: data.payment_status,
+      paymentConfirmedByAdmin: data.payment_confirmed_by_admin,
       createdAt: data.created_at
     }
   },
@@ -356,7 +365,9 @@ export const api = {
       other_fees: quote.otherFees,
       total: quote.total,
       comments: quote.comments,
-      status: quote.status || 'sent'
+      status: quote.status || 'sent',
+      payment_status: quote.paymentStatus ?? null,
+      payment_confirmed_by_admin: quote.paymentConfirmedByAdmin ?? false
     }
 
     let res
@@ -368,11 +379,26 @@ export const api = {
     
     if (res.error) throw new Error(res.error.message)
     const data = res.data
+
+    // Notify customer
+    try {
+      const { data: b } = await supabase.from('bookings').select('profile_id, reference').eq('id', payload.booking_id).single()
+      if (b && b.profile_id) {
+        if (quote.paymentConfirmedByAdmin) {
+          await this.createNotification(b.profile_id, 'Payment Confirmed', `Your payment for quote #${payload.quotation_number} has been confirmed.`, 'success')
+        } else if (quote.paymentStatus && !quote.paymentConfirmedByAdmin) {
+          // customer updated payment status — no notif needed here, admin sees it in Payments page
+        } else if (payload.status === 'sent') {
+          await this.createNotification(b.profile_id, 'New Estimate Available', `An estimate #${payload.quotation_number} has been prepared for your booking #${b.reference}.`, 'info')
+        }
+      }
+    } catch(e) {}
+
     return {
       id: data.id, bookingId: data.booking_id, quotationNumber: data.quotation_number, date: data.date,
       validUntil: data.valid_until, preparedBy: data.prepared_by, items: data.items, subtotal: data.subtotal,
       salesTaxRate: data.sales_tax_rate, otherFees: data.other_fees, total: data.total, comments: data.comments,
-      status: data.status, createdAt: data.created_at
+      status: data.status, paymentStatus: data.payment_status, paymentConfirmedByAdmin: data.payment_confirmed_by_admin, createdAt: data.created_at
     }
   },
 
@@ -507,12 +533,12 @@ export const api = {
     if (error) throw new Error(error.message)
   },
 
-  async getCurrentUser(user: any): Promise<{ name: string; email: string; role: 'admin' | 'customer'; profileId?: string }> {
+  async getCurrentUser(user: any): Promise<{ name: string; email: string; role: 'admin' | 'customer'; profileId?: string; phone?: string }> {
     const email = user.email?.toLowerCase() || '';
-    const { data } = await supabase.from('profiles').select('id, name').eq('email', email).limit(1).maybeSingle();
+    const { data } = await supabase.from('profiles').select('id, name, phone').eq('email', email).limit(1).maybeSingle();
     
     if (data) {
-      return { name: data.name, email, role: 'customer', profileId: data.id };
+      return { name: data.name, email, role: 'customer', profileId: data.id, phone: data.phone || '' };
     }
 
     // Auto-create customer profile if they signed in via Google

@@ -4,7 +4,7 @@ import {
   LayoutDashboardIcon, CalendarIcon, WrenchIcon, TruckIcon,
   UsersIcon, SettingsIcon, LogOutIcon, ChevronLeftIcon,
   MenuIcon, XIcon, MoonIcon, SunIcon, UserCircleIcon, CreditCardIcon,
-  StarIcon, BarChartIcon, BellIcon,
+  StarIcon, BarChartIcon, BellIcon, TrashIcon,
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
@@ -21,6 +21,7 @@ const nav = [
   { to: '/admin/reviews', icon: StarIcon, label: 'Reviews' },
   { to: '/admin/reports', icon: BarChartIcon, label: 'Reports' },
   { to: '/admin/notifications', icon: BellIcon, label: 'Notifications' },
+  { to: '/admin/trash', icon: TrashIcon, label: 'Trash' },
 ]
 
 const settingsNav = [

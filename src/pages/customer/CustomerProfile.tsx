@@ -3,9 +3,9 @@ import { Routes, Route } from 'react-router-dom'
 import { SaveIcon, UserIcon, MailIcon, PhoneIcon, LockIcon } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
-import { api } from '../../lib/api'
 import { supabase } from '../../lib/supabase'
 import { toast } from 'sonner'
+
 
 export function CustomerProfile() {
   return (
@@ -21,11 +21,11 @@ function PersonalInfoTab() {
   const { user, refreshUser } = useAuth()
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
-  
+
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    phone: ''
+    phone: user?.phone || ''
   })
 
   useEffect(() => {
@@ -33,17 +33,20 @@ function PersonalInfoTab() {
       if (!user?.profileId) return
       try {
         setLoading(true)
-        const customers = await api.getCustomers()
-        const customer = customers.find(c => c.id === user.profileId)
-        if (customer) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('name, email, phone')
+          .eq('id', user.profileId)
+          .single()
+        if (!error && data) {
           setFormData({
-            name: customer.name,
-            email: customer.email,
-            phone: customer.phone || ''
+            name: data.name || '',
+            email: data.email || '',
+            phone: data.phone || ''
           })
         }
       } catch (error) {
-        console.error("Error fetching profile", error)
+        console.error('Error fetching profile', error)
       } finally {
         setLoading(false)
       }
@@ -58,7 +61,7 @@ function PersonalInfoTab() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user?.profileId) return
-    
+
     try {
       setSaving(true)
       await api.updateCustomer(user.profileId, {
@@ -288,11 +291,10 @@ function PreferencesTab() {
             <button
               type="button"
               onClick={() => theme === 'dark' && toggleTheme()}
-              className={`p-5 rounded-xl border-2 text-left transition-all ${
-                theme === 'light'
+              className={`p-5 rounded-xl border-2 text-left transition-all ${theme === 'light'
                   ? 'border-accent-500 bg-accent-50/20 text-accent-700 ring-2 ring-accent-500/10'
                   : 'border-line hover:border-accent-300 bg-surface'
-              }`}
+                }`}
             >
               <div className="text-lg mb-1.5">☀️</div>
               <div className="font-semibold text-sm text-ink">Light Mode</div>
@@ -302,11 +304,10 @@ function PreferencesTab() {
             <button
               type="button"
               onClick={() => theme === 'light' && toggleTheme()}
-              className={`p-5 rounded-xl border-2 text-left transition-all ${
-                theme === 'dark'
+              className={`p-5 rounded-xl border-2 text-left transition-all ${theme === 'dark'
                   ? 'border-accent-500 bg-navy-950/20 text-accent-400 ring-2 ring-accent-500/10'
                   : 'border-line hover:border-accent-300 bg-surface'
-              }`}
+                }`}
             >
               <div className="text-lg mb-1.5">🌙</div>
               <div className="font-semibold text-sm text-ink">Dark Mode</div>

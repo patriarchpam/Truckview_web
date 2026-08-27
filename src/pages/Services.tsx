@@ -38,9 +38,6 @@ export function Services() {
                 <div className="relative h-52 overflow-hidden">
                   <img src={s.image} alt={s.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <span className="absolute top-4 right-4 rounded-full bg-accent-500 px-3 py-1 text-xs font-medium text-white">
-                    {formatPrice(s.price)}
-                  </span>
                 </div>
                 <div className="flex-1 flex flex-col p-6">
                   <h3 className="text-lg font-semibold text-ink">{s.name}</h3>
@@ -54,7 +51,7 @@ export function Services() {
                     ))}
                   </ul>
                   <div className="mt-5 flex items-center justify-between pt-4 border-t border-line">
-                    <span className="text-xs text-muted flex items-center gap-1"><ClockIcon size={14} /> {formatDuration(s.duration)}</span>
+                    <div />
                     <Link to="/book" state={{ serviceId: s.id }}
                       className="text-sm font-medium text-accent-500 hover:text-accent-600 flex items-center gap-1 transition-colors"
                     >

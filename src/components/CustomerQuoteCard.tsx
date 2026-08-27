@@ -29,6 +29,19 @@ export function CustomerQuoteCard({ quote, booking, onUpdate }: CustomerQuoteCar
     }
   }
 
+  const handlePayment = async (status: 'pending' | 'partial' | 'full') => {
+    setUpdating(true)
+    try {
+      // Temporary API call mock until api is fully updated, but let's assume api supports it
+      await api.saveQuote({ ...quote, paymentStatus: status, paymentConfirmedByAdmin: false })
+      onUpdate?.()
+    } catch (err) {
+      alert('Failed to update payment status')
+    } finally {
+      setUpdating(false)
+    }
+  }
+
   return (
     <div className="mt-6 border-t border-line pt-6">
       <div className="flex items-center justify-between mb-4">
@@ -43,6 +56,11 @@ export function CustomerQuoteCard({ quote, booking, onUpdate }: CustomerQuoteCar
           <Badge variant={quote.status === 'accepted' ? 'success' : quote.status === 'rejected' ? 'danger' : 'warning'} className="capitalize">
             {quote.status}
           </Badge>
+          {quote.paymentStatus && (
+            <Badge variant={quote.paymentConfirmedByAdmin ? 'success' : 'warning'} className="capitalize ml-2">
+              {quote.paymentConfirmedByAdmin ? 'Paid ' : 'Pending '} {quote.paymentStatus}
+            </Badge>
+          )}
         </div>
       </div>
 
@@ -99,6 +117,26 @@ export function CustomerQuoteCard({ quote, booking, onUpdate }: CustomerQuoteCar
             <Button variant="outline" className="flex-1 text-red-500 hover:bg-red-50 hover:border-red-200" onClick={() => handleAction('rejected')} disabled={updating}>
               <XIcon size={16} /> Reject Quote
             </Button>
+          </div>
+        )}
+
+        {quote.status === 'accepted' && (
+          <div className="pt-4 border-t border-line space-y-3">
+            <p className="text-sm font-semibold text-ink">Update Payment Status</p>
+            <div className="flex flex-wrap gap-3">
+              <Button variant="outline" size="sm" onClick={() => handlePayment('pending')} disabled={updating || quote.paymentStatus === 'pending'}>
+                Mark as Pending
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => handlePayment('partial')} disabled={updating || quote.paymentStatus === 'partial'}>
+                Mark as Partial Paid
+              </Button>
+              <Button size="sm" onClick={() => handlePayment('full')} disabled={updating || quote.paymentStatus === 'full'}>
+                Mark as Fully Paid
+              </Button>
+            </div>
+            {quote.paymentStatus && !quote.paymentConfirmedByAdmin && (
+              <p className="text-xs text-muted mt-2 italic">Waiting for admin to confirm payment status.</p>
+            )}
           </div>
         )}
 

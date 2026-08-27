@@ -12,6 +12,22 @@ import { supabase } from '../../lib/supabase'
 
 import { AdminQuoteModal } from '../../components/admin/AdminQuoteModal'
 
+// Shows a live payment status badge for a booking by checking its quote
+function PaymentBadge({ bookingId }: { bookingId: string }) {
+  const [ps, setPs] = useState<{ status: string | null; confirmed: boolean } | null>(null)
+
+  useEffect(() => {
+    supabase.from('quotes').select('payment_status, payment_confirmed_by_admin').eq('booking_id', bookingId).maybeSingle()
+      .then(({ data }) => {
+        if (data) setPs({ status: data.payment_status, confirmed: data.payment_confirmed_by_admin })
+      })
+  }, [bookingId])
+
+  if (!ps || !ps.status) return <span className="text-xs text-muted">—</span>
+  if (ps.confirmed) return <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">✓ {ps.status}</span>
+  return <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">⏳ {ps.status}</span>
+}
+
 const statusColors: Record<string, 'warning' | 'info' | 'success' | 'danger' | 'default'> = {
   pending: 'warning',
   reviewed: 'info',
@@ -155,6 +171,7 @@ export function AdminBookings() {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-muted uppercase">Service</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-muted uppercase">Date</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-muted uppercase">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted uppercase">Payment</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -176,6 +193,9 @@ export function AdminBookings() {
                       <div className="text-xs text-muted">{b.time}</div>
                     </td>
                     <td className="px-4 py-3"><Badge variant={statusColors[b.status] || 'default'} className="capitalize">{b.status.replace('-', ' ')}</Badge></td>
+                    <td className="px-4 py-3">
+                      <PaymentBadge bookingId={b.id} />
+                    </td>
                     <td className="px-4 py-3">
                       <Button variant="ghost" size="sm" onClick={() => setSelected(b.id)}>View</Button>
                     </td>

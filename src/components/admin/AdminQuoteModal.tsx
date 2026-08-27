@@ -125,6 +125,16 @@ export function AdminQuoteModal({ open, onClose, booking }: AdminQuoteModalProps
             <FileTextIcon size={16} className="mr-1" /> Preview PDF
           </Button>
           <div className="flex gap-2">
+            {quote?.paymentStatus && !quote?.paymentConfirmedByAdmin && (
+              <Button variant="primary" onClick={async () => {
+                try {
+                  await api.saveQuote({ ...quote, paymentConfirmedByAdmin: true } as any)
+                  await loadQuote(booking.id)
+                } catch (e) {
+                  alert('Failed to confirm payment')
+                }
+              }}>Confirm Payment</Button>
+            )}
             <Button variant="outline" onClick={onClose}>Cancel</Button>
             <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : (quote ? 'Update Quote' : 'Create Quote')}</Button>
           </div>
@@ -132,6 +142,14 @@ export function AdminQuoteModal({ open, onClose, booking }: AdminQuoteModalProps
       }
     >
       <div className="grid gap-6">
+        {quote?.paymentStatus && (
+          <div className="bg-accent-50/50 p-4 rounded-xl border border-accent-200 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-ink">Payment Status: <span className="capitalize">{quote.paymentStatus}</span></p>
+              <p className="text-xs text-muted">{quote.paymentConfirmedByAdmin ? 'Confirmed by admin' : 'Awaiting confirmation'}</p>
+            </div>
+          </div>
+        )}
         {/* Header Details */}
         <div className="grid gap-4 sm:grid-cols-2 bg-surface-2 p-4 rounded-xl">
           <Field label="Quotation #">

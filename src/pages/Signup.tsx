@@ -59,9 +59,8 @@ export function Signup() {
     <div className="flex min-h-screen items-center justify-center bg-surface px-4 py-12">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <Link to="/" className="inline-flex items-center gap-2 text-2xl font-black tracking-tight text-ink">
-            <Truck className="text-accent-500" size={32} />
-            TRUCK<span className="text-accent-500">VIEW</span>
+          <Link to="/" className="inline-flex items-center justify-center">
+            <img src="/logo.png" alt="Truck-View" className="h-16 w-auto mb-2" />
           </Link>
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-ink">Create your account</h2>
           <p className="mt-2 text-sm text-muted">

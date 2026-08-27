@@ -198,5 +198,7 @@ export interface Quote {
   total: number
   comments: string
   status: 'draft' | 'sent' | 'accepted' | 'rejected'
+  paymentStatus?: 'unpaid' | 'pending' | 'partial' | 'full'
+  paymentConfirmedByAdmin?: boolean
   createdAt: string
 }

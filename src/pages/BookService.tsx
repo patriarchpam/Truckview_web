@@ -70,7 +70,7 @@ export function BookService() {
 
   // Customer states
   const [name, setName] = useState(user?.name || '')
-  const [phone, setPhone] = useState('')
+  const [phone, setPhone] = useState(user?.phone || '')
   const [email, setEmail] = useState(user?.email || '')
   
   // Appointment states
@@ -166,6 +166,7 @@ export function BookService() {
       loadSavedData()
       setName(user.name)
       setEmail(user.email)
+      if (user.phone) setPhone(user.phone)
     }
   }, [user])
 
@@ -238,10 +239,6 @@ export function BookService() {
   const canProceed3 = date && time
 
   const handleSubmit = async () => {
-    if (!canBook) {
-      toast.error('You have reached your monthly booking limit. Please upgrade your plan.')
-      return
-    }
     setSubmitting(true)
 
     try {
@@ -656,7 +653,24 @@ export function BookService() {
                       </div>
                       <div>
                         <span className="text-xs text-muted block">Phone Number</span>
-                        <span className="text-sm font-semibold text-ink">{phone || 'No phone registered'}</span>
+                        {isValidPhone ? (
+                          <span className="text-sm font-semibold text-ink">{phone}</span>
+                        ) : (
+                          <div className="mt-1">
+                            <Input
+                              value={phone}
+                              onChange={(e) => setPhone(e.target.value)}
+                              placeholder="Enter phone number"
+                              className="text-sm"
+                            />
+                            {phone.trim() && !isValidPhone && (
+                              <p className="text-xs text-red-500 mt-1">Provide a valid phone number (at least 10 digits).</p>
+                            )}
+                            {!phone.trim() && (
+                              <p className="text-xs text-amber-500 mt-1">Phone number required to continue.</p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                     
