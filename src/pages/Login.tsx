@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { Button } from '../components/ui/Button'
 import { Field, Input } from '../components/ui/Field'
 import { useAuth } from '../contexts/AuthContext'
-import { Truck } from 'lucide-react'
+
 
 export function Login() {
   const [email, setEmail] = useState('')

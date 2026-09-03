@@ -38,7 +38,7 @@ const SYMPTOMS = [
 export function BookService() {
   const location = useLocation()
   const { services, vehicleTypes, getSlots, createBooking } = useStore()
-  const { canBook } = useSubscription()
+  useSubscription()
 
   const preService = (location.state as { serviceId?: string })?.serviceId
   const preVehicle = (location.state as { vehicleTypeId?: string })?.vehicleTypeId

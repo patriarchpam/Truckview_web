@@ -64,11 +64,15 @@ function PersonalInfoTab() {
 
     try {
       setSaving(true)
-      await api.updateCustomer(user.profileId, {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone
-      })
+      const { error: updateError } = await supabase
+        .from('customers')
+        .update({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone
+        })
+        .eq('id', user.profileId)
+      if (updateError) throw updateError
       await refreshUser()
       toast.success('Profile updated successfully')
     } catch (error: any) {

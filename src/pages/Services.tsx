@@ -1,8 +1,7 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { ClockIcon, ArrowRightIcon } from 'lucide-react'
+import { ArrowRightIcon } from 'lucide-react'
 import { useStore } from '../contexts/StoreContext'
-import { formatPrice, formatDuration } from '../utils/format'
 
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0 } }
 
