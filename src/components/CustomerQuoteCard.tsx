@@ -35,7 +35,7 @@ export function CustomerQuoteCard({ quote, booking, onUpdate }: CustomerQuoteCar
   const handlePayment = async (status: 'pending' | 'partial' | 'full') => {
     setUpdating(true)
     try {
-      await api.saveQuote({ ...quote, paymentStatus: status, paymentConfirmedByAdmin: false })
+      await api.updatePaymentStatus(quote.id, status)
       toast.success('Payment status updated!')
       onUpdate?.()
     } catch (err) {

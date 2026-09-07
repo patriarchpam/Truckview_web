@@ -285,7 +285,12 @@ export const api = {
     try {
       const { data: admins } = await supabase.from('profiles').select('id').eq('email', 'admin@truckview.com.ng')
       const adminId = admins?.[0]?.id || 'admin-system'
-      await this.createNotification(adminId, 'New Booking Request', `New service request #${ref} received from ${draft.customer.name}`, 'info')
+      // Notify the specific admin if found
+      if (adminId !== 'admin-system') {
+        await this.createNotification(adminId, 'New Booking Request', `New service request #${ref} received from ${draft.customer.name}`, 'info')
+      }
+      // Always notify the generic system inbox so AdminNotifications can see it
+      await this.createNotification('admin-system', 'New Booking Request', `New service request #${ref} received from ${draft.customer.name}`, 'info')
     } catch (err) {
       console.warn("Could not notify admin of new booking:", err)
     }
@@ -463,6 +468,28 @@ export const api = {
           `Quote #${q.quotation_number} ${status === 'negotiating' ? 'Change Requested' : status}`,
           `Customer responded to quote #${q.quotation_number} with status: ${status}.${customerNotes ? ' Note: "' + customerNotes + '"' : ''}`,
           status === 'accepted' ? 'success' : status === 'rejected' ? 'warning' : 'info'
+        )
+      }
+    } catch(e) {}
+  },
+
+  async updatePaymentStatus(quoteId: string, status: 'pending' | 'partial' | 'full', confirmedByAdmin: boolean = false): Promise<void> {
+    const payload = {
+      payment_status: status,
+      payment_confirmed_by_admin: confirmedByAdmin
+    }
+    const { error } = await supabase.from('quotes').update(payload).eq('id', quoteId)
+    if (error) throw new Error(error.message)
+    
+    // Notify admin
+    try {
+      const { data: q } = await supabase.from('quotes').select('quotation_number, booking_id').eq('id', quoteId).single()
+      if (q) {
+        await this.createNotification(
+          'admin-system',
+          `Payment Status Updated`,
+          `Customer marked payment for quote #${q.quotation_number} as: ${status}. Pending your confirmation.`,
+          'info'
         )
       }
     } catch(e) {}

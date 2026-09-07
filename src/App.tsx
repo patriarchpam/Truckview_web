@@ -27,7 +27,6 @@ import { AdminLogin } from './pages/admin/AdminLogin'
 import { AdminServices } from './pages/admin/AdminServices'
 import { AdminSettings } from './pages/admin/AdminSettings'
 import { AdminVehicleTypes } from './pages/admin/AdminVehicleTypes'
-import { AdminMechanics } from './pages/admin/AdminMechanics'
 import { AdminPayments } from './pages/admin/AdminPayments'
 import { AdminReviews } from './pages/admin/AdminReviews'
 import { AdminReports } from './pages/admin/AdminReports'
@@ -52,8 +51,6 @@ import { HelpSupport } from './pages/shared/HelpSupport'
 
 import { HelmetProvider } from 'react-helmet-async'
 
-import { AbujaMechanic } from './pages/service-areas/AbujaMechanic'
-
 export function App() {
   return (
     <HelmetProvider>
@@ -72,7 +69,6 @@ export function App() {
                   <Route path="contact" element={<Contact />} />
                   <Route path="book" element={<BookService />} />
                   <Route path="booking" element={<BookingLookup />} />
-                  <Route path="service-areas/abuja" element={<AbujaMechanic />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
 
@@ -99,7 +95,6 @@ export function App() {
                   <Route path="vehicle-types" element={<AdminVehicleTypes />} />
                   <Route path="availability" element={<AdminAvailability />} />
                   <Route path="customers" element={<AdminCustomers />} />
-                  <Route path="mechanics" element={<AdminMechanics />} />
                   <Route path="payments" element={<AdminPayments />} />
                   <Route path="reviews" element={<AdminReviews />} />
                   <Route path="trash" element={<AdminTrash />} />

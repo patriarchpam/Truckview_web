@@ -18,7 +18,25 @@ export function formatLongDate(iso: string): string {
 }
 
 export function formatShortDate(iso: string): string {
-  return format(fromISODate(iso), 'EEE, MMM d')
+  try {
+    // Attempt standard parse first
+    const parsed = parse(iso, 'yyyy-MM-dd', new Date())
+    if (isNaN(parsed.getTime())) throw new Error()
+    return format(parsed, 'EEE, MMM d')
+  } catch {
+    // Fallback if it's a full ISO datetime string
+    return format(new Date(iso), 'EEE, MMM d')
+  }
+}
+
+export function formatDateTime(iso: string): string {
+  try {
+    const d = new Date(iso)
+    if (isNaN(d.getTime())) return iso
+    return format(d, 'MMM d, h:mm a')
+  } catch {
+    return iso
+  }
 }
 
 export function formatTime(time: string): string {

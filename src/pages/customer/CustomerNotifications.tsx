@@ -3,7 +3,7 @@ import { BellIcon, CheckCircle2Icon, WrenchIcon, AlertCircleIcon, ShieldAlertIco
 import { useAuth } from '../../contexts/AuthContext'
 import { api } from '../../lib/api'
 import { toast } from 'sonner'
-import { formatShortDate } from '../../utils/format'
+import { formatShortDate, formatDateTime } from '../../utils/format'
 
 const iconMap: Record<string, any> = {
   success: CheckCircle2Icon,
@@ -33,7 +33,7 @@ export function CustomerNotifications() {
     }
 
     // Load any fallback notifications written locally during admin testing
-    const fallbackKey = `notifications_fallback_${user.email.toLowerCase()}`
+    const fallbackKey = `notifications_fallback_${user.profileId}`
     const fallbackStored = localStorage.getItem(fallbackKey)
     if (fallbackStored) {
       const fallbackList = JSON.parse(fallbackStored)
@@ -41,6 +41,18 @@ export function CustomerNotifications() {
       fallbackList.forEach((n: any) => {
         if (!existingIds.has(n.id)) {
           list.push(n)
+        }
+      })
+    }
+
+    // Load global broadcast notifications
+    const globalStored = localStorage.getItem('notifications_broadcast_global')
+    if (globalStored) {
+      const globalList = JSON.parse(globalStored)
+      const existingIds = new Set(list.map(n => n.id))
+      globalList.forEach((n: any) => {
+        if (!existingIds.has(n.id)) {
+          list.push({ ...n, profile_id: user.profileId })
         }
       })
     }
@@ -74,7 +86,7 @@ export function CustomerNotifications() {
     }
     
     // Clear local storage fallback alerts
-    const fallbackKey = `notifications_fallback_${user.email.toLowerCase()}`
+    const fallbackKey = `notifications_fallback_${user.profileId}`
     localStorage.removeItem(fallbackKey)
     toast.success('Notifications cleared!')
     await loadNotifications()
@@ -121,7 +133,7 @@ export function CustomerNotifications() {
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start mb-1 gap-2">
                       <h4 className={`font-semibold text-ink text-sm ${!notif.read ? 'font-bold text-accent-600' : ''}`}>{notif.title}</h4>
-                      <span className="text-xs text-muted whitespace-nowrap">{formatShortDate(notif.created_at || notif.date || new Date().toISOString())}</span>
+                      <span className="text-xs text-muted whitespace-nowrap">{formatDateTime(notif.created_at || notif.date || new Date().toISOString())}</span>
                     </div>
                     <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">{notif.message}</p>
                   </div>

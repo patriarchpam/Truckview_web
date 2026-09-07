@@ -138,7 +138,7 @@ export function CustomerLayout() {
 
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile header */}
-        <header className="lg:hidden flex items-center justify-between border-b border-line/50 glass px-4 py-3 relative z-20">
+        <header className="lg:hidden flex items-center justify-between border-b border-line/50 glass px-4 py-3 relative z-50">
           <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-1 -ml-1 text-ink-soft hover:text-ink">
             {mobileMenuOpen ? <XIcon size={24} /> : <MenuIcon size={24} />}
           </button>
@@ -156,7 +156,7 @@ export function CustomerLayout() {
 
         {/* Mobile nav overlay */}
         {mobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 z-10 bg-canvas/80 backdrop-blur-sm pt-[60px]" onClick={() => setMobileMenuOpen(false)}>
+          <div className="lg:hidden fixed inset-0 z-40 bg-canvas/80 backdrop-blur-sm pt-[60px]" onClick={() => setMobileMenuOpen(false)}>
             <div className="bg-surface border-b border-line flex flex-col p-4 shadow-lg overflow-y-auto max-h-[80vh]" onClick={e => e.stopPropagation()}>
               {renderNavLinks(() => setMobileMenuOpen(false))}
               <div className="pt-4 mt-4 border-t border-line space-y-2">
