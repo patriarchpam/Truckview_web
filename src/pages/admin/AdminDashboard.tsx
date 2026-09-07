@@ -32,10 +32,10 @@ export function AdminDashboard() {
   const todayBookings = bookings.filter((b) => b.date === today)
   const activeBookings = bookings.filter((b) => !['completed', 'cancelled'].includes(b.status))
   const stats = [
-    { icon: CalendarIcon, label: "Today's Bookings", value: todayBookings.length, color: 'bg-accent-100 text-accent-600 dark:bg-accent-900/30 dark:text-accent-400' },
-    { icon: TrendingUpIcon, label: 'Active Bookings', value: activeBookings.length, color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' },
-    { icon: UsersIcon, label: 'Customers', value: customers.length, color: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400' },
-    { icon: WrenchIcon, label: 'Services', value: services.filter((s) => s.active).length, color: 'bg-success-100 text-success-600 dark:bg-success-700/30 dark:text-success-400' },
+    { icon: CalendarIcon, label: "Today's Bookings", value: todayBookings.length, color: 'bg-accent-100 text-accent-600 dark:bg-accent-900/30 dark:text-accent-400', route: '/admin/bookings' },
+    { icon: TrendingUpIcon, label: 'Active Bookings', value: activeBookings.length, color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400', route: '/admin/bookings' },
+    { icon: UsersIcon, label: 'Customers', value: customers.length, color: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400', route: '/admin/customers' },
+    { icon: WrenchIcon, label: 'Services', value: services.filter((s) => s.active).length, color: 'bg-success-100 text-success-600 dark:bg-success-700/30 dark:text-success-400', route: '/admin/services' },
   ]
 
   const upcoming = [...activeBookings].sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`)).slice(0, 5)
@@ -47,16 +47,23 @@ export function AdminDashboard() {
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         {stats.map((s, i) => (
-          <motion.div key={s.label} initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: i * 0.05, duration: 0.4 }}
-            className="rounded-xl border border-line bg-surface p-5 shadow-card"
+          <motion.div 
+            key={s.label} 
+            initial="hidden" 
+            animate="visible" 
+            variants={fadeUp} 
+            transition={{ delay: i * 0.05, duration: 0.4 }}
+            whileHover={{ scale: 1.02 }}
+            onClick={() => navigate(s.route)}
+            className="rounded-xl border border-line bg-surface p-5 shadow-card cursor-pointer hover:border-accent-500 hover:shadow-md transition-all group"
           >
             <div className="flex items-center gap-3">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${s.color}`}>
+              <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${s.color} group-hover:scale-110 transition-transform`}>
                 <s.icon size={20} />
               </div>
               <div>
                 <div className="text-2xl font-bold text-ink">{s.value}</div>
-                <div className="text-xs text-muted">{s.label}</div>
+                <div className="text-xs text-muted font-medium">{s.label}</div>
               </div>
             </div>
           </motion.div>

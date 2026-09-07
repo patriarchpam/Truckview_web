@@ -174,7 +174,7 @@ export function CustomerLayout() {
         )}
 
         {/* Content area */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8 relative">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-8 relative min-w-0 overflow-x-hidden">
           <Outlet />
           <Chatbot />
         </main>

@@ -202,9 +202,19 @@ export function AdminQuoteModal({ open, onClose, booking }: AdminQuoteModalProps
           </div>
         </div>
 
+        {/* Customer Notes / Change Requests Display */}
+        {quote?.customerNotes && (
+          <div className="p-3.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-xs space-y-1">
+            <span className="font-semibold text-amber-800 dark:text-amber-300 block uppercase tracking-wider">
+              Customer Note / Request ({quote.status}):
+            </span>
+            <p className="text-amber-900 dark:text-amber-200 italic">"{quote.customerNotes}"</p>
+          </div>
+        )}
+
         {/* Totals & Notes */}
         <div className="grid gap-6 sm:grid-cols-2">
-          <Field label="Comments / Instructions">
+          <Field label="Admin Comments / Instructions">
             <Textarea rows={4} value={comments} onChange={e => setComments(e.target.value)} placeholder="None" />
           </Field>
           

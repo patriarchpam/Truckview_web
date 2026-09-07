@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/Button'
 import { formatPrice, formatDuration } from '../../utils/format'
 import { ServiceModal } from '../../components/admin/ServiceModal'
 import type { Service } from '../../types'
+import { toast } from 'sonner'
 
 export function AdminServices() {
   const { services, loading, deleteService } = useStore()
@@ -23,12 +24,13 @@ export function AdminServices() {
     setModalOpen(true)
   }
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this service?')) {
+  const handleDelete = async (id: string, name: string) => {
+    if (confirm(`Move service "${name}" to Trash? You can restore it later from Trash & Recovery.`)) {
       try {
         await deleteService(id)
+        toast.success(`Service "${name}" moved to Trash`)
       } catch (err) {
-        alert('Failed to delete service')
+        toast.error('Failed to delete service')
       }
     }
   }
@@ -65,7 +67,7 @@ export function AdminServices() {
               <Button variant="outline" className="flex-1 text-xs py-1.5" onClick={() => handleEdit(s)}>
                 <PencilIcon size={14} /> Edit
               </Button>
-              <Button variant="outline" className="flex-1 text-xs py-1.5 text-red-500 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:border-red-900/30" onClick={() => handleDelete(s.id)}>
+              <Button variant="outline" className="flex-1 text-xs py-1.5 text-red-500 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:border-red-900/30" onClick={() => handleDelete(s.id, s.name)}>
                 <TrashIcon size={14} /> Delete
               </Button>
             </div>

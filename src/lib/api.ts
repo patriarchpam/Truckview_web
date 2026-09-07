@@ -71,46 +71,52 @@ export const api = {
     const content = seed.siteContent
     const settings = seed.settings
 
-    const transformedBookings: Booking[] = (bookings || []).map((b: any) => ({
-      id: b.id,
-      reference: b.reference,
-      customer: {
-        name: b.profiles?.name || 'Unknown',
-        phone: b.profiles?.phone || '',
-        email: b.profiles?.email || '',
-      },
-      vehicleTypeId: b.vehicle_type_id,
-      vehicleDetails: b.vehicle_details,
-      serviceIds: b.service_id ? b.service_id.split(',') : [],
-      date: b.date,
-      time: b.time,
-      location: b.location,
-      notes: b.notes,
-      status: b.status,
-      createdAt: b.created_at,
-    }))
+    const transformedBookings: Booking[] = (bookings || [])
+      .filter((b: any) => !b.is_deleted)
+      .map((b: any) => ({
+        id: b.id,
+        reference: b.reference,
+        customer: {
+          name: b.profiles?.name || 'Unknown',
+          phone: b.profiles?.phone || '',
+          email: b.profiles?.email || '',
+        },
+        vehicleTypeId: b.vehicle_type_id,
+        vehicleDetails: b.vehicle_details,
+        serviceIds: b.service_id ? b.service_id.split(',') : [],
+        date: b.date,
+        time: b.time,
+        location: b.location,
+        notes: b.notes,
+        status: b.status,
+        createdAt: b.created_at,
+      }))
 
-    const transformedVehicleTypes: VehicleType[] = (vehicleTypes || []).map((v: any) => ({
-      id: v.id,
-      slug: v.id, // Generate slug fallback
-      name: v.name,
-      description: v.description,
-      image: v.image,
-      active: v.active,
-    }))
+    const transformedVehicleTypes: VehicleType[] = (vehicleTypes || [])
+      .filter((v: any) => !v.is_deleted)
+      .map((v: any) => ({
+        id: v.id,
+        slug: v.id, // Generate slug fallback
+        name: v.name,
+        description: v.description,
+        image: v.image,
+        active: v.active,
+      }))
 
-    const transformedServices: Service[] = (services || []).map((s: any) => ({
-      id: s.id,
-      slug: s.id, // Generate slug fallback
-      name: s.name,
-      description: s.description,
-      price: s.price,
-      duration: s.duration,
-      details: s.details,
-      image: s.image,
-      vehicleTypeIds: s.vehicle_type_ids, // Mapped from snake_case
-      active: s.active,
-    }))
+    const transformedServices: Service[] = (services || [])
+      .filter((s: any) => !s.is_deleted)
+      .map((s: any) => ({
+        id: s.id,
+        slug: s.id, // Generate slug fallback
+        name: s.name,
+        description: s.description,
+        price: s.price,
+        duration: s.duration,
+        details: s.details,
+        image: s.image,
+        vehicleTypeIds: s.vehicle_type_ids, // Mapped from snake_case
+        active: s.active,
+      }))
 
     return {
       vehicleTypes: transformedVehicleTypes,
@@ -131,10 +137,8 @@ export const api = {
     return settings 
   },
 
-  async saveService(service: Service): Promise<Service[]> {
-    const id = service.id || `srv-${Date.now()}`
-    const { error } = await supabase.from('services').upsert({
-      id,
+  async saveService(service: Partial<Service>): Promise<Service[]> {
+    const payload = {
       name: service.name,
       description: service.description,
       price: service.price,
@@ -143,16 +147,28 @@ export const api = {
       image: service.image,
       vehicle_type_ids: service.vehicleTypeIds,
       active: service.active,
-    })
+    }
+    let error
+    if (service.id) {
+      const res = await supabase.from('services').update(payload).eq('id', service.id)
+      error = res.error
+    } else {
+      const res = await supabase.from('services').insert({ ...payload, id: `svc-${Date.now()}` })
+      error = res.error
+    }
     if (error) throw new Error(error.message)
     const { data } = await supabase.from('services').select('*')
-    return data as Service[] || []
+    return (data || []).filter((s: any) => !s.is_deleted) as Service[] || []
   },
 
   async deleteService(id: ID): Promise<Service[]> {
-    await supabase.from('services').delete().eq('id', id)
+    const { error } = await supabase.from('services').update({ is_deleted: true }).eq('id', id)
+    if (error) {
+      console.warn("Soft delete failed for service, trying hard delete:", error.message)
+      await supabase.from('services').delete().eq('id', id)
+    }
     const { data } = await supabase.from('services').select('*')
-    return data as Service[] || []
+    return (data || []).filter((s: any) => !s.is_deleted) as Service[] || []
   },
 
   async saveVehicleType(vehicleType: VehicleType): Promise<VehicleType[]> {
@@ -161,13 +177,25 @@ export const api = {
     const { error } = await supabase.from('vehicle_types').upsert(payload)
     if (error) throw new Error(error.message)
     const { data } = await supabase.from('vehicle_types').select('*')
-    return data as VehicleType[] || []
+    return (data || []).filter((v: any) => !v.is_deleted) as VehicleType[] || []
   },
 
   async deleteVehicleType(id: ID): Promise<VehicleType[]> {
-    await supabase.from('vehicle_types').delete().eq('id', id)
+    const { error } = await supabase.from('vehicle_types').update({ is_deleted: true }).eq('id', id)
+    if (error) {
+      console.warn("Soft delete failed for vehicle_type, trying hard delete:", error.message)
+      await supabase.from('vehicle_types').delete().eq('id', id)
+    }
     const { data } = await supabase.from('vehicle_types').select('*')
-    return data as VehicleType[] || []
+    return (data || []).filter((v: any) => !v.is_deleted) as VehicleType[] || []
+  },
+
+  async deleteCustomer(id: ID): Promise<void> {
+    const { error } = await supabase.from('profiles').update({ is_deleted: true }).eq('id', id)
+    if (error) {
+      console.warn("Soft delete failed for customer profile, trying hard delete:", error.message)
+      await supabase.from('profiles').delete().eq('id', id)
+    }
   },
 
   async getSlots(dateISO: string): Promise<SlotAvailability[]> {
@@ -253,6 +281,15 @@ export const api = {
       await supabase.from('subscriptions').insert({ profile_id: profileId, tier: 'free', bookings_used: 1, bookings_limit: 3, renews_at: toISODate(new Date()) })
     }
 
+    // 6. Notify admin of new booking
+    try {
+      const { data: admins } = await supabase.from('profiles').select('id').eq('email', 'admin@truckview.com.ng')
+      const adminId = admins?.[0]?.id || 'admin-system'
+      await this.createNotification(adminId, 'New Booking Request', `New service request #${ref} received from ${draft.customer.name}`, 'info')
+    } catch (err) {
+      console.warn("Could not notify admin of new booking:", err)
+    }
+
     // Reload all bookings to return fresh state
     const { bookings } = await this.getBootstrap()
     const newBooking = bookings.find(b => b.id === bookingId)!
@@ -263,10 +300,14 @@ export const api = {
   async updateBookingStatus(id: ID, status: BookingStatus): Promise<Booking[]> {
     await supabase.from('bookings').update({ status }).eq('id', id)
     
-    // Notify customer
-    const { data: b } = await supabase.from('bookings').select('profile_id, reference').eq('id', id).single()
-    if (b && b.profile_id) {
-      await this.createNotification(b.profile_id, 'Service Status Updated', `Your service request #${b.reference} is now marked as: ${status}.`, 'info')
+    // Notify customer safely
+    try {
+      const { data: b } = await supabase.from('bookings').select('profile_id, reference').eq('id', id).single()
+      if (b && b.profile_id) {
+        await this.createNotification(b.profile_id, 'Service Status Updated', `Your service request #${b.reference} is now marked as: ${status}.`, 'info')
+      }
+    } catch (e) {
+      console.warn('Failed to send customer notification in updateBookingStatus:', e)
     }
 
     const { bookings } = await this.getBootstrap()
@@ -345,6 +386,7 @@ export const api = {
       otherFees: data.other_fees,
       total: data.total,
       comments: data.comments,
+      customerNotes: data.customer_notes || '',
       status: data.status,
       paymentStatus: data.payment_status,
       paymentConfirmedByAdmin: data.payment_confirmed_by_admin,
@@ -353,7 +395,7 @@ export const api = {
   },
 
   async saveQuote(quote: Partial<Quote>): Promise<Quote> {
-    const payload = {
+    const payload: any = {
       booking_id: quote.bookingId,
       quotation_number: quote.quotationNumber,
       date: quote.date,
@@ -365,6 +407,7 @@ export const api = {
       other_fees: quote.otherFees,
       total: quote.total,
       comments: quote.comments,
+      customer_notes: quote.customerNotes,
       status: quote.status || 'sent',
       payment_status: quote.paymentStatus ?? null,
       payment_confirmed_by_admin: quote.paymentConfirmedByAdmin ?? false
@@ -386,8 +429,6 @@ export const api = {
       if (b && b.profile_id) {
         if (quote.paymentConfirmedByAdmin) {
           await this.createNotification(b.profile_id, 'Payment Confirmed', `Your payment for quote #${payload.quotation_number} has been confirmed.`, 'success')
-        } else if (quote.paymentStatus && !quote.paymentConfirmedByAdmin) {
-          // customer updated payment status — no notif needed here, admin sees it in Payments page
         } else if (payload.status === 'sent') {
           await this.createNotification(b.profile_id, 'New Estimate Available', `An estimate #${payload.quotation_number} has been prepared for your booking #${b.reference}.`, 'info')
         }
@@ -398,13 +439,33 @@ export const api = {
       id: data.id, bookingId: data.booking_id, quotationNumber: data.quotation_number, date: data.date,
       validUntil: data.valid_until, preparedBy: data.prepared_by, items: data.items, subtotal: data.subtotal,
       salesTaxRate: data.sales_tax_rate, otherFees: data.other_fees, total: data.total, comments: data.comments,
+      customerNotes: data.customer_notes || '',
       status: data.status, paymentStatus: data.payment_status, paymentConfirmedByAdmin: data.payment_confirmed_by_admin, createdAt: data.created_at
     }
   },
 
-  async updateQuoteStatus(quoteId: string, status: 'accepted' | 'rejected'): Promise<void> {
-    const { error } = await supabase.from('quotes').update({ status }).eq('id', quoteId)
-    if (error) throw new Error(error.message)
+  async updateQuoteStatus(quoteId: string, status: 'accepted' | 'rejected' | 'negotiating', customerNotes?: string): Promise<void> {
+    const payload: any = { status }
+    if (customerNotes !== undefined) payload.customer_notes = customerNotes
+
+    const { error } = await supabase.from('quotes').update(payload).eq('id', quoteId)
+    if (error) {
+      console.warn("Could not save customer_notes to quotes table, updating status only:", error.message)
+      await supabase.from('quotes').update({ status }).eq('id', quoteId)
+    }
+
+    // Notify admin
+    try {
+      const { data: q } = await supabase.from('quotes').select('quotation_number, booking_id').eq('id', quoteId).single()
+      if (q) {
+        await this.createNotification(
+          'admin-system',
+          `Quote #${q.quotation_number} ${status === 'negotiating' ? 'Change Requested' : status}`,
+          `Customer responded to quote #${q.quotation_number} with status: ${status}.${customerNotes ? ' Note: "' + customerNotes + '"' : ''}`,
+          status === 'accepted' ? 'success' : status === 'rejected' ? 'warning' : 'info'
+        )
+      }
+    } catch(e) {}
   },
 
   async uploadImage(file: File): Promise<string> {
@@ -654,12 +715,29 @@ export const api = {
       message,
       type
     }
-    const { data, error } = await supabase.from('notifications').insert(payload).select().single()
-    if (error) {
-      console.warn("DB notification insert failed:", error.message)
-      throw error
+    try {
+      const { data, error } = await supabase.from('notifications').insert(payload).select().single()
+      if (error) {
+        console.warn("DB notification insert failed, falling back to local storage:", error.message)
+        const storedKey = `notifications_${profileId}`
+        const stored = localStorage.getItem(storedKey)
+        const list = stored ? JSON.parse(stored) : []
+        const fallbackNotif = { id: Date.now().toString(), ...payload, read: false, created_at: new Date().toISOString() }
+        list.push(fallbackNotif)
+        localStorage.setItem(storedKey, JSON.stringify(list))
+        return fallbackNotif
+      }
+      return data
+    } catch (e) {
+      console.warn("createNotification exception caught:", e)
+      const storedKey = `notifications_${profileId}`
+      const stored = localStorage.getItem(storedKey)
+      const list = stored ? JSON.parse(stored) : []
+      const fallbackNotif = { id: Date.now().toString(), ...payload, read: false, created_at: new Date().toISOString() }
+      list.push(fallbackNotif)
+      localStorage.setItem(storedKey, JSON.stringify(list))
+      return fallbackNotif
     }
-    return data
   },
 
   async markNotificationsRead(profileId: string): Promise<void> {

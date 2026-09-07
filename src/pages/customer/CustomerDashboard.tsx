@@ -25,7 +25,7 @@ export function CustomerDashboard() {
   }
 
   return (
-    <div className="space-y-8 max-w-5xl">
+    <div className="space-y-8 w-full max-w-5xl">
       {/* Welcome Header */}
       <div className="bg-gradient-to-r from-navy-900 to-navy-800 rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
         <div className="relative z-10">

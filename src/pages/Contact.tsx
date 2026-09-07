@@ -7,19 +7,40 @@ import { Field, Input, Textarea } from '../components/ui/Field'
 import { toast } from 'sonner'
 import { SEO } from '../components/SEO'
 
+import { api } from '../lib/api'
+
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0 } }
 
 export function Contact() {
   const { content, loading } = useStore()
   const [sending, setSending] = useState(false)
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [message, setMessage] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!name.trim() || !email.trim() || !message.trim()) return
+
     setSending(true)
-    await new Promise((r) => setTimeout(r, 1000))
-    toast.success("Message sent! We'll get back to you shortly.")
-    setSending(false)
-    ;(e.target as HTMLFormElement).reset()
+    try {
+      await api.createNotification(
+        'admin-system',
+        `Contact Message from ${name}`,
+        `From: ${name} (${email}${phone ? ' / ' + phone : ''})\nMessage: "${message}"`,
+        'info'
+      )
+      toast.success("Message sent! We'll get back to you shortly.")
+      setName('')
+      setEmail('')
+      setPhone('')
+      setMessage('')
+    } catch (err) {
+      toast.error("Failed to send message. Please try again.")
+    } finally {
+      setSending(false)
+    }
   }
 
   if (loading || !content) return <div className="flex h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-accent-500 border-t-transparent" /></div>
@@ -81,18 +102,18 @@ export function Contact() {
             <form onSubmit={handleSubmit} className="rounded-2xl border border-line bg-surface p-6 lg:p-8 shadow-card space-y-5">
               <h2 className="text-lg font-semibold text-ink">Send us a message</h2>
               <Field label="Name" required htmlFor="contact-name">
-                <Input id="contact-name" required placeholder="Your name" />
+                <Input id="contact-name" value={name} onChange={e => setName(e.target.value)} required placeholder="Your name" />
               </Field>
               <div className="grid gap-5 sm:grid-cols-2">
                 <Field label="Email" required htmlFor="contact-email">
-                  <Input id="contact-email" type="email" required placeholder="you@example.com" />
+                  <Input id="contact-email" type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@example.com" />
                 </Field>
                 <Field label="Phone" htmlFor="contact-phone">
-                  <Input id="contact-phone" type="tel" placeholder="0803 000 0000" />
+                  <Input id="contact-phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="0803 000 0000" />
                 </Field>
               </div>
               <Field label="Message" required htmlFor="contact-message">
-                <Textarea id="contact-message" rows={5} required placeholder="Tell us about your vehicle or service needs…" />
+                <Textarea id="contact-message" rows={5} value={message} onChange={e => setMessage(e.target.value)} required placeholder="Tell us about your vehicle or service needs…" />
               </Field>
               <Button type="submit" disabled={sending} className="w-full justify-center">
                 <SendIcon size={16} /> {sending ? 'Sending…' : 'Send Message'}

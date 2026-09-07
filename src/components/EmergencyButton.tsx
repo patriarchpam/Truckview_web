@@ -7,7 +7,7 @@ export function EmergencyButton() {
   return (
     <a
       href="tel:08036798700"
-      className="fixed bottom-6 right-6 z-50 group flex items-center justify-center"
+      className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 group flex items-center justify-center"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       aria-label="Emergency Call"

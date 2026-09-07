@@ -51,6 +51,13 @@ export function CustomerNotifications() {
 
   useEffect(() => {
     loadNotifications()
+    
+    // Poll every 10 seconds for new notifications
+    const interval = setInterval(() => {
+      loadNotifications()
+    }, 10000)
+
+    return () => clearInterval(interval)
   }, [user])
 
   const handleMarkAllRead = async () => {

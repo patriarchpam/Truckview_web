@@ -7,7 +7,6 @@ import { Field } from '../../components/ui/Field'
 import { formatShortDate } from '../../utils/format'
 import { toast } from 'sonner'
 import type { BookingStatus } from '../../types'
-import { api } from '../../lib/api'
 import { supabase } from '../../lib/supabase'
 
 import { AdminQuoteModal } from '../../components/admin/AdminQuoteModal'
@@ -43,31 +42,6 @@ const statusColors: Record<string, 'warning' | 'info' | 'success' | 'danger' | '
   cancelled: 'danger'
 }
 
-function getNotificationContent(status: string, ref: string) {
-  switch (status) {
-    case 'confirmed':
-      return { title: 'Appointment Confirmed', message: `Your appointment request ${ref} has been confirmed. See you then!`, type: 'success' as const }
-    case 'inspection':
-      return { title: 'Vehicle Inspection Started', message: `Your vehicle inspection under request ${ref} has been started by our mechanics.`, type: 'info' as const }
-    case 'diagnosed':
-      return { title: 'Diagnosis Ready', message: `The diagnosis report for request ${ref} is ready.`, type: 'info' as const }
-    case 'estimate-ready':
-      return { title: 'Estimate Awaiting Approval', message: `A service estimate is ready for your approval on request ${ref}.`, type: 'warning' as const }
-    case 'in-progress':
-      return { title: 'Repair In Progress', message: `Technicians have started working on your vehicle for request ${ref}.`, type: 'info' as const }
-    case 'quality-check':
-      return { title: 'Quality Checking', message: `Your vehicle is undergoing post-repair quality checks and road test.`, type: 'info' as const }
-    case 'ready':
-      return { title: 'Vehicle Ready for Collection', message: `Your vehicle is ready for collection under request ${ref}!`, type: 'success' as const }
-    case 'completed':
-      return { title: 'Service Request Completed', message: `Service request ${ref} is completed. Thank you for choosing TruckView!`, type: 'success' as const }
-    case 'cancelled':
-      return { title: 'Request Cancelled', message: `Your service request ${ref} has been cancelled.`, type: 'warning' as const }
-    default:
-      return { title: 'Status Update', message: `Your service request ${ref} has been updated to ${status}.`, type: 'info' as const }
-  }
-}
-
 export function AdminBookings() {
   const { bookings, services, updateBookingStatus, rescheduleBooking } = useStore()
   const [filter, setFilter] = useState<string>('all')
@@ -95,37 +69,10 @@ export function AdminBookings() {
   const handleStatusChange = async (id: string, status: BookingStatus) => {
     try {
       await updateBookingStatus(id, status)
-      
-      // Auto-create notification for customer
-      if (selectedBooking && selectedBooking.customer.email) {
-        try {
-          const { data: profile } = await supabase.from('profiles').select('id').eq('email', selectedBooking.customer.email.toLowerCase()).single()
-          if (profile) {
-            const notifContent = getNotificationContent(status, selectedBooking.reference)
-            await api.createNotification(profile.id, notifContent.title, notifContent.message, notifContent.type)
-          }
-        } catch (e) {
-          // local storage fallback for user notifications during offline dev testing
-          console.warn("Could not create DB notification, attempting local storage fallback:", e)
-          const storedKey = `notifications_fallback_${selectedBooking.customer.email.toLowerCase()}`
-          const stored = localStorage.getItem(storedKey)
-          const list = stored ? JSON.parse(stored) : []
-          const notifContent = getNotificationContent(status, selectedBooking.reference)
-          list.push({
-            id: Date.now().toString(),
-            title: notifContent.title,
-            message: notifContent.message,
-            type: notifContent.type,
-            read: false,
-            created_at: new Date().toISOString()
-          })
-          localStorage.setItem(storedKey, JSON.stringify(list))
-        }
-      }
-      
       toast.success(`Booking status updated to: ${status}`)
       setSelected(null)
-    } catch { 
+    } catch (err) { 
+      console.error('Error updating status:', err)
       toast.error('Failed to update status') 
     }
   }

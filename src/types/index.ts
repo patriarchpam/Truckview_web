@@ -197,7 +197,8 @@ export interface Quote {
   otherFees: number
   total: number
   comments: string
-  status: 'draft' | 'sent' | 'accepted' | 'rejected'
+  customerNotes?: string
+  status: 'draft' | 'sent' | 'accepted' | 'rejected' | 'negotiating'
   paymentStatus?: 'unpaid' | 'pending' | 'partial' | 'full'
   paymentConfirmedByAdmin?: boolean
   createdAt: string

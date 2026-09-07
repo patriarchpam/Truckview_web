@@ -62,24 +62,24 @@ export function QuoteDocumentPreview({ booking, quoteData, onClose }: QuoteDocum
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/80 flex flex-col overflow-y-auto p-4 sm:p-8">
+    <div className="fixed inset-0 z-[100] bg-black/80 flex flex-col overflow-y-auto p-2 sm:p-6">
       {/* Top action bar */}
-      <div className="w-full max-w-[210mm] mx-auto flex justify-between items-center mb-6 bg-surface p-4 rounded-xl shadow-lg shrink-0 sticky top-0 z-10">
-        <h2 className="text-lg font-bold text-ink">Preview Document</h2>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={onClose} disabled={isGenerating}>
+      <div className="w-full max-w-[210mm] mx-auto flex flex-col sm:flex-row justify-between items-center gap-3 mb-4 bg-surface p-3.5 sm:p-4 rounded-xl shadow-lg shrink-0 sticky top-0 z-10">
+        <h2 className="text-base sm:text-lg font-bold text-ink text-center sm:text-left">Preview Document</h2>
+        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+          <Button variant="outline" onClick={onClose} disabled={isGenerating} className="flex-1 sm:flex-none justify-center">
             <XIcon size={16} /> Close
           </Button>
-          <Button onClick={handleDownload} disabled={isGenerating}>
+          <Button onClick={handleDownload} disabled={isGenerating} className="flex-1 sm:flex-none justify-center">
             <Download size={16} /> {isGenerating ? 'Generating...' : 'Download PDF'}
           </Button>
         </div>
       </div>
       
-      {/* A4 Document Container Wrapper */}
-      <div className="w-full overflow-x-auto flex justify-start sm:justify-center pb-8">
+      {/* A4 Document Container Wrapper with mobile horizontal scroll support */}
+      <div className="w-full overflow-x-auto flex justify-start sm:justify-center pb-8 pt-2 scrollbar-thin">
         <div 
-          className="w-[210mm] min-h-[297mm] bg-white text-black pt-[25mm] px-[20mm] pb-[15mm] shadow-2xl shrink-0 relative overflow-hidden flex flex-col" 
+          className="w-[210mm] min-h-[297mm] bg-white text-black p-6 sm:pt-[25mm] sm:px-[20mm] sm:pb-[15mm] shadow-2xl shrink-0 relative overflow-hidden flex flex-col mx-auto" 
           ref={documentRef}
         >
         {/* Background Watermark */}
