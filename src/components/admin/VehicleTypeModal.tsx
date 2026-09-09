@@ -47,24 +47,24 @@ export function VehicleTypeModal({ open, onClose, vehicleType }: VehicleTypeModa
       onClose()
     } catch (err) {
       console.error(err)
-      alert("Failed to save vehicle type")
+      alert("Failed to save car brand")
     } finally {
       setSaving(false)
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={vehicleType ? 'Edit Vehicle Type' : 'Add New Vehicle Type'} size="sm"
+    <Modal open={open} onClose={onClose} title={vehicleType ? 'Edit Car Brand' : 'Add New Car Brand'} size="sm"
       footer={
         <>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save Vehicle Type'}</Button>
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save Car Brand'}</Button>
         </>
       }
     >
       <div className="grid gap-5">
         <Field label="Name">
-          <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Sedan" />
+          <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Toyota" />
         </Field>
         
         <Field label="Description">
@@ -73,7 +73,7 @@ export function VehicleTypeModal({ open, onClose, vehicleType }: VehicleTypeModa
         
         <Field label="Image">
           <div className="flex items-center gap-3">
-            <Input value={image} onChange={e => setImage(e.target.value)} placeholder="/images/vehicle-sedan.png" className="flex-1" />
+            <Input value={image} onChange={e => setImage(e.target.value)} placeholder="/images/brand-toyota.png" className="flex-1" />
             <div className="relative">
               <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 onChange={async (e) => {
@@ -98,7 +98,7 @@ export function VehicleTypeModal({ open, onClose, vehicleType }: VehicleTypeModa
         <label className="flex items-center gap-2 text-sm font-medium text-ink cursor-pointer mt-2">
           <input type="checkbox" className="rounded border-line text-accent-500 focus:ring-accent-500"
             checked={active} onChange={(e) => setActive(e.target.checked)} />
-          Vehicle Type is Active
+          Car Brand is Active
         </label>
       </div>
     </Modal>

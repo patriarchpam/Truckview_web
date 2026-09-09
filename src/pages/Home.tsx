@@ -227,16 +227,14 @@ export function Home() {
         </div>
       </section>
 
-      {/* Vehicle Types */}
-      <section className="bg-surface-2 py-20">
-        <div className="mx-auto max-w-7xl px-4">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.5 }}
-            className="text-center mb-12"
-          >
-            <span className="text-sm font-semibold uppercase tracking-wider text-accent-500">We Service</span>
-            <h2 className="mt-2 text-3xl font-bold text-ink sm:text-4xl">Every Vehicle Type</h2>
+      {/* Car Brands */}
+      <section className="py-20 bg-canvas">
+        <div className="mx-auto max-w-7xl px-4 text-center">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.5 }}>
+            <span className="text-sm font-semibold uppercase tracking-wider text-accent-500">Car Brands</span>
+            <h2 className="mt-2 text-3xl font-bold text-ink sm:text-4xl">Every Car Brand</h2>
           </motion.div>
-          <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 mt-12">
             {vehicleTypes.filter((v) => v.active).slice(0, 12).map((vt, i) => (
               <motion.div key={vt.id} initial="hidden" whileInView="visible" viewport={{ once: true }}
                 variants={fadeUp} transition={{ delay: i * 0.05, duration: 0.4 }}

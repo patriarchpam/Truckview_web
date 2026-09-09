@@ -27,7 +27,7 @@ export function Footer() {
             <ul className="space-y-2.5 text-sm">
               {[
                 { to: '/services', label: 'Our Services' },
-                { to: '/vehicle-types', label: 'Vehicle Types' },
+                { to: '/vehicle-types', label: 'Car Brands' },
                 { to: '/pricing', label: 'Pricing Plans' },
                 { to: '/book', label: 'Book a Service' },
                 { to: '/booking', label: 'Track Booking' },

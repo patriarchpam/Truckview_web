@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
 import { AppToaster } from './components/AppToaster'
+import { GlobalNotificationListener } from './components/GlobalNotificationListener'
 import { AdminLayout } from './components/admin/AdminLayout'
 import { CustomerLayout } from './components/customer/CustomerLayout'
 import { PublicLayout } from './components/PublicLayout'
@@ -9,6 +10,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { StoreProvider } from './contexts/StoreContext'
 import { SubscriptionProvider } from './contexts/SubscriptionContext'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { NotificationProvider } from './contexts/NotificationContext'
 import { About } from './pages/About'
 import { BookService } from './pages/BookService'
 import { BookingLookup } from './pages/BookingLookup'
@@ -58,8 +60,9 @@ export function App() {
         <StoreProvider>
           <AuthProvider>
             <SubscriptionProvider>
-              <BrowserRouter>
-                <Routes>
+              <NotificationProvider>
+                <BrowserRouter>
+                  <Routes>
                 <Route element={<PublicLayout />}>
                   <Route index element={<Home />} />
                   <Route path="services" element={<Services />} />
@@ -115,9 +118,11 @@ export function App() {
                   </Route>
                 </Route>
               </Routes>
-              <AppToaster />
-            </BrowserRouter>
-          </SubscriptionProvider>
+                <GlobalNotificationListener />
+                <AppToaster />
+              </BrowserRouter>
+              </NotificationProvider>
+            </SubscriptionProvider>
         </AuthProvider>
       </StoreProvider>
     </ThemeProvider>

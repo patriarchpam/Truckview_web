@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { toast } from 'sonner'
+import { api } from '../../lib/api'
 
 
 export function CustomerProfile() {
@@ -64,15 +65,11 @@ function PersonalInfoTab() {
 
     try {
       setSaving(true)
-      const { error: updateError } = await supabase
-        .from('customers')
-        .update({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone
-        })
-        .eq('id', user.profileId)
-      if (updateError) throw updateError
+      await api.updateCustomer(user.profileId, {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone
+      })
       await refreshUser()
       toast.success('Profile updated successfully')
     } catch (error: any) {
@@ -296,8 +293,8 @@ function PreferencesTab() {
               type="button"
               onClick={() => theme === 'dark' && toggleTheme()}
               className={`p-5 rounded-xl border-2 text-left transition-all ${theme === 'light'
-                  ? 'border-accent-500 bg-accent-50/20 text-accent-700 ring-2 ring-accent-500/10'
-                  : 'border-line hover:border-accent-300 bg-surface'
+                ? 'border-accent-500 bg-accent-50/20 text-accent-700 ring-2 ring-accent-500/10'
+                : 'border-line hover:border-accent-300 bg-surface'
                 }`}
             >
               <div className="text-lg mb-1.5">☀️</div>
@@ -309,8 +306,8 @@ function PreferencesTab() {
               type="button"
               onClick={() => theme === 'light' && toggleTheme()}
               className={`p-5 rounded-xl border-2 text-left transition-all ${theme === 'dark'
-                  ? 'border-accent-500 bg-navy-950/20 text-accent-400 ring-2 ring-accent-500/10'
-                  : 'border-line hover:border-accent-300 bg-surface'
+                ? 'border-accent-500 bg-navy-950/20 text-accent-400 ring-2 ring-accent-500/10'
+                : 'border-line hover:border-accent-300 bg-surface'
                 }`}
             >
               <div className="text-lg mb-1.5">🌙</div>

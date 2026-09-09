@@ -14,8 +14,8 @@ export function VehicleTypes() {
     <div className="py-16">
       <div className="mx-auto max-w-7xl px-4">
         <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.5 }} className="text-center mb-14">
-          <span className="text-sm font-semibold uppercase tracking-wider text-accent-500">Vehicle Types</span>
-          <h1 className="mt-2 text-3xl font-bold text-ink sm:text-4xl">We Service Every Vehicle</h1>
+          <span className="text-sm font-semibold uppercase tracking-wider text-accent-500">Car Brands</span>
+          <h1 className="mt-2 text-3xl font-bold text-ink sm:text-4xl">We Service Every Car Brand</h1>
           <p className="mt-3 text-muted max-w-2xl mx-auto">From personal cars to commercial fleets, our mechanics are trained to handle them all.</p>
         </motion.div>
 

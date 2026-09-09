@@ -23,11 +23,11 @@ export function AdminVehicleTypes() {
   }
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this vehicle type?')) {
+    if (confirm('Are you sure you want to delete this car brand?')) {
       try {
         await deleteVehicleType(id)
       } catch (err) {
-        alert('Failed to delete vehicle type')
+        alert('Failed to delete car brand')
       }
     }
   }
@@ -38,11 +38,11 @@ export function AdminVehicleTypes() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-ink">Vehicle Types</h1>
-          <p className="text-sm text-muted mt-1">Manage the types of vehicles your workshop services.</p>
+          <h1 className="text-2xl font-bold text-ink">Car Brands</h1>
+          <p className="text-sm text-muted mt-1">Manage the car brands your workshop services.</p>
         </div>
         <Button onClick={handleAdd} className="w-full sm:w-auto shrink-0 justify-center">
-          <PlusIcon size={16} className="mr-2" /> Add Vehicle Type
+          <PlusIcon size={16} className="mr-2" /> Add Car Brand
         </Button>
       </div>
       

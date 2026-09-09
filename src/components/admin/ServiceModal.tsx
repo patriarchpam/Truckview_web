@@ -119,7 +119,7 @@ export function ServiceModal({ open, onClose, service }: ServiceModalProps) {
         </Field>
         
         <div className="sm:col-span-2">
-          <div className="text-sm font-medium text-ink mb-2">Supported Vehicle Types</div>
+          <div className="text-sm font-medium text-ink mb-2">Supported Car Brands</div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {vehicleTypes.map(vt => (
               <label key={vt.id} className="flex items-center gap-2 text-sm text-ink-soft cursor-pointer">

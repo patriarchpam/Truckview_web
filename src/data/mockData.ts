@@ -479,7 +479,7 @@ export const siteContent: SiteContent = {
     eyebrow: 'Professional Mechanic Workshop',
     heading: 'Your Vehicle. Our Expertise. Simplified.',
     description:
-      'Truck-View Global Ent. brings every vehicle service into one place. Cars, SUVs, vans, trucks, buses and commercial vehicles — pick a service, choose a time that works, and our certified mechanics handle the rest.',
+      'Truck-View Global Ent. brings every vehicle service into one place. All car brands and models — pick a service, choose a time that works, and our certified mechanics handle the rest.',
     image:
       'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=1200&h=600&fit=crop',
     featuredServiceIds: ['svc-maintenance', 'svc-inspection', 'svc-diagnostics'],
@@ -510,7 +510,7 @@ export const siteContent: SiteContent = {
     {
       id: 'ts-1',
       name: 'Adaeze Okafor',
-      role: 'SUV owner',
+      role: 'Toyota owner',
       quote:
         'I booked a full service on my phone during a lunch break and got a confirmation the same hour. No calls, no back and forth.',
       rating: 5,

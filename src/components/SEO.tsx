@@ -11,7 +11,7 @@ interface SEOProps {
 
 export function SEO({
   title,
-  description = 'Truck-View Global Ent. — Professional mechanic workshop in Abuja. Book vehicle servicing, inspections, diagnostics, and more for cars, SUVs, trucks, vans, and commercial vehicles.',
+  description = 'Truck-View Global Ent. — Professional mechanic workshop in Abuja. Book vehicle servicing, inspections, diagnostics, and more for all car brands and models.',
   canonicalUrl,
   type = 'website',
   image = 'https://truckview.com.ng/logo.png', // Replace with real domain later

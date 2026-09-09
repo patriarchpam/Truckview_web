@@ -99,7 +99,7 @@ export function BookingLookup() {
             <div>
               <div className="text-xs text-muted">Vehicle</div>
               <div className="text-sm font-medium text-ink">{b.vehicleDetails}</div>
-              <div className="text-xs text-muted">{vehicle?.name || 'Unknown Vehicle Type'}</div>
+              <div className="text-xs text-muted">{vehicle?.name || 'Unknown Car Brand'}</div>
             </div>
           </div>
           <div className="flex items-start gap-3">

@@ -93,7 +93,7 @@ export function BookService() {
     if (!vehicleTypeId) return []
     // Extract make name from slug or ID, e.g. "vt-toyota" -> "Toyota"
     const makeId = vehicleTypeId.startsWith('vt-') ? vehicleTypeId.substring(3) : vehicleTypeId
-    const key = Object.keys(vehicleMakes).find(k => k.toLowerCase() === makeId.toLowerCase())
+    const key = Object.keys(vehicleMakes).find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '-') === makeId.toLowerCase())
     return key ? (vehicleMakes as any)[key] : []
   }, [vehicleTypeId])
 

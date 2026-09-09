@@ -48,10 +48,13 @@ export function AdminBookings() {
   const [selected, setSelected] = useState<string | null>(null)
   const [quoteModalOpen, setQuoteModalOpen] = useState(false)
 
-  // Rescheduling states
+  // Rescheduling & Status states
   const [confirmedDate, setConfirmedDate] = useState('')
   const [confirmedTime, setConfirmedTime] = useState('')
   const [confirmingAppt, setConfirmingAppt] = useState(false)
+  
+  const [pendingStatus, setPendingStatus] = useState<BookingStatus | ''>('')
+  const [updatingStatus, setUpdatingStatus] = useState(false)
 
   const filtered = filter === 'all' ? bookings : bookings.filter((b) => b.status === filter)
   const sorted = [...filtered].sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`))
@@ -63,17 +66,23 @@ export function AdminBookings() {
     if (selectedBooking) {
       setConfirmedDate(selectedBooking.date)
       setConfirmedTime(selectedBooking.time)
+      setPendingStatus(selectedBooking.status)
     }
-  }, [selected])
+  }, [selected, selectedBooking?.status])
 
-  const handleStatusChange = async (id: string, status: BookingStatus) => {
+  const handleSaveStatus = async () => {
+    if (!selectedBooking || !pendingStatus || pendingStatus === selectedBooking.status) return
+    setUpdatingStatus(true)
     try {
-      await updateBookingStatus(id, status)
-      toast.success(`Booking status updated to: ${status}`)
+      await updateBookingStatus(selectedBooking.id, pendingStatus as BookingStatus)
+      toast.success(`Booking status updated to: ${pendingStatus.replace('-', ' ')}`)
+      // Close modal or just let it stay open with new status
       setSelected(null)
     } catch (err) { 
       console.error('Error updating status:', err)
       toast.error('Failed to update status') 
+    } finally {
+      setUpdatingStatus(false)
     }
   }
 
@@ -82,7 +91,7 @@ export function AdminBookings() {
     setConfirmingAppt(true)
     try {
       await rescheduleBooking(selectedBooking.id, confirmedDate, confirmedTime)
-      await handleStatusChange(selectedBooking.id, 'confirmed')
+      await updateBookingStatus(selectedBooking.id, 'confirmed')
       toast.success('Appointment date and time confirmed!')
     } catch {
       toast.error('Failed to confirm appointment')
@@ -214,19 +223,27 @@ export function AdminBookings() {
             </div>
 
             {/* Quick Status Select */}
-            <div className="pt-4 border-t border-line">
-              <label className="block text-xs text-muted font-bold uppercase mb-2">Change Progress Stage</label>
-              <select
-                value={selectedBooking.status}
-                onChange={(e) => handleStatusChange(selectedBooking.id, e.target.value as any)}
-                className="w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-sm text-ink focus:border-accent-500 focus:outline-none capitalize"
-              >
-                {Object.keys(statusColors).map((st) => (
-                  <option key={st} value={st} className="capitalize">
-                    {st.replace('-', ' ')}
-                  </option>
-                ))}
-              </select>
+            <div className="pt-4 border-t border-line space-y-3">
+              <label className="block text-xs text-muted font-bold uppercase">Change Progress Stage</label>
+              <div className="flex gap-2">
+                <select
+                  value={pendingStatus}
+                  onChange={(e) => setPendingStatus(e.target.value as any)}
+                  className="flex-1 rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-accent-500 focus:outline-none capitalize"
+                >
+                  {Object.keys(statusColors).map((st) => (
+                    <option key={st} value={st} className="capitalize">
+                      {st.replace('-', ' ')}
+                    </option>
+                  ))}
+                </select>
+                <Button 
+                  onClick={handleSaveStatus} 
+                  disabled={updatingStatus || pendingStatus === selectedBooking.status || !pendingStatus}
+                >
+                  {updatingStatus ? 'Saving...' : 'Save Stage'}
+                </Button>
+              </div>
             </div>
           </div>
         )}

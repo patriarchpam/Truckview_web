@@ -130,11 +130,11 @@ export const api = {
   },
 
   async updateContent(content: SiteContent): Promise<SiteContent> {
-    return content 
+    return content
   },
 
   async updateSettings(settings: Settings): Promise<Settings> {
-    return settings 
+    return settings
   },
 
   async saveService(service: Partial<Service>): Promise<Service[]> {
@@ -162,7 +162,7 @@ export const api = {
   },
 
   async deleteService(id: ID): Promise<Service[]> {
-    const { error } = await supabase.from('services').update({ is_deleted: true }).eq('id', id)
+    const { error } = await supabase.from('services').update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq('id', id)
     if (error) {
       console.warn("Soft delete failed for service, trying hard delete:", error.message)
       await supabase.from('services').delete().eq('id', id)
@@ -181,7 +181,7 @@ export const api = {
   },
 
   async deleteVehicleType(id: ID): Promise<VehicleType[]> {
-    const { error } = await supabase.from('vehicle_types').update({ is_deleted: true }).eq('id', id)
+    const { error } = await supabase.from('vehicle_types').update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq('id', id)
     if (error) {
       console.warn("Soft delete failed for vehicle_type, trying hard delete:", error.message)
       await supabase.from('vehicle_types').delete().eq('id', id)
@@ -191,7 +191,7 @@ export const api = {
   },
 
   async deleteCustomer(id: ID): Promise<void> {
-    const { error } = await supabase.from('profiles').update({ is_deleted: true }).eq('id', id)
+    const { error } = await supabase.from('profiles').update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq('id', id)
     if (error) {
       console.warn("Soft delete failed for customer profile, trying hard delete:", error.message)
       await supabase.from('profiles').delete().eq('id', id)
@@ -201,7 +201,7 @@ export const api = {
   async getSlots(dateISO: string): Promise<SlotAvailability[]> {
     const availability = seed.availability
     const dayConfig = availability.businessHours[weekdayOf(dateISO)]
-    
+
     if (!dayConfig.open || availability.blockedDates.includes(dateISO)) return []
 
     const { data: bookings } = await supabase.from('bookings').select('time').eq('date', dateISO).neq('status', 'cancelled')
@@ -219,14 +219,14 @@ export const api = {
   },
 
   async updateAvailability(availability: Availability): Promise<Availability> {
-    return availability 
+    return availability
   },
 
   async createBooking(draft: BookingDraft): Promise<{ booking: Booking; bookings: Booking[] }> {
     // 1. Get or create profile
     let profileId: string
     const { data: existingProfile } = await supabase.from('profiles').select('id').eq('email', draft.customer.email.toLowerCase()).single()
-    
+
     if (existingProfile) {
       profileId = existingProfile.id
     } else {
@@ -236,7 +236,7 @@ export const api = {
         .insert({ name: draft.customer.name, email: draft.customer.email.toLowerCase(), phone: draft.customer.phone })
         .select()
         .single()
-      
+
       if (profileError || !newProfile) throw new Error('Failed to create customer profile. Have you run the updated schema migration?')
       profileId = newProfile.id
     }
@@ -284,27 +284,30 @@ export const api = {
     // 6. Notify admin of new booking
     try {
       const { data: admins } = await supabase.from('profiles').select('id').eq('email', 'admin@truckview.com.ng')
-      const adminId = admins?.[0]?.id || 'admin-system'
+      const adminId = admins?.[0]?.id || '00000000-0000-0000-0000-000000000000'
       // Notify the specific admin if found
-      if (adminId !== 'admin-system') {
+      if (adminId !== '00000000-0000-0000-0000-000000000000') {
         await this.createNotification(adminId, 'New Booking Request', `New service request #${ref} received from ${draft.customer.name}`, 'info')
       }
       // Always notify the generic system inbox so AdminNotifications can see it
-      await this.createNotification('admin-system', 'New Booking Request', `New service request #${ref} received from ${draft.customer.name}`, 'info')
+      await this.createNotification('00000000-0000-0000-0000-000000000000', 'New Booking Request', `New service request #${ref} received from ${draft.customer.name}`, 'info')
+
+      // Notify customer of successful booking
+      await this.createNotification(profileId, 'Booking Confirmed', `Your service request #${ref} has been received and is pending review.`, 'success')
     } catch (err) {
-      console.warn("Could not notify admin of new booking:", err)
+      console.warn("Could not notify parties of new booking:", err)
     }
 
     // Reload all bookings to return fresh state
     const { bookings } = await this.getBootstrap()
     const newBooking = bookings.find(b => b.id === bookingId)!
-    
+
     return { booking: newBooking, bookings }
   },
 
   async updateBookingStatus(id: ID, status: BookingStatus): Promise<Booking[]> {
     await supabase.from('bookings').update({ status }).eq('id', id)
-    
+
     // Notify customer safely
     try {
       const { data: b } = await supabase.from('bookings').select('profile_id, reference').eq('id', id).single()
@@ -424,7 +427,7 @@ export const api = {
     } else {
       res = await supabase.from('quotes').insert(payload).select().single()
     }
-    
+
     if (res.error) throw new Error(res.error.message)
     const data = res.data
 
@@ -438,7 +441,7 @@ export const api = {
           await this.createNotification(b.profile_id, 'New Estimate Available', `An estimate #${payload.quotation_number} has been prepared for your booking #${b.reference}.`, 'info')
         }
       }
-    } catch(e) {}
+    } catch (e) { }
 
     return {
       id: data.id, bookingId: data.booking_id, quotationNumber: data.quotation_number, date: data.date,
@@ -464,13 +467,13 @@ export const api = {
       const { data: q } = await supabase.from('quotes').select('quotation_number, booking_id').eq('id', quoteId).single()
       if (q) {
         await this.createNotification(
-          'admin-system',
+          '00000000-0000-0000-0000-000000000000',
           `Quote #${q.quotation_number} ${status === 'negotiating' ? 'Change Requested' : status}`,
           `Customer responded to quote #${q.quotation_number} with status: ${status}.${customerNotes ? ' Note: "' + customerNotes + '"' : ''}`,
           status === 'accepted' ? 'success' : status === 'rejected' ? 'warning' : 'info'
         )
       }
-    } catch(e) {}
+    } catch (e) { }
   },
 
   async updatePaymentStatus(quoteId: string, status: 'pending' | 'partial' | 'full', confirmedByAdmin: boolean = false): Promise<void> {
@@ -480,19 +483,19 @@ export const api = {
     }
     const { error } = await supabase.from('quotes').update(payload).eq('id', quoteId)
     if (error) throw new Error(error.message)
-    
+
     // Notify admin
     try {
       const { data: q } = await supabase.from('quotes').select('quotation_number, booking_id').eq('id', quoteId).single()
       if (q) {
         await this.createNotification(
-          'admin-system',
+          '00000000-0000-0000-0000-000000000000',
           `Payment Status Updated`,
           `Customer marked payment for quote #${q.quotation_number} as: ${status}. Pending your confirmation.`,
           'info'
         )
       }
-    } catch(e) {}
+    } catch (e) { }
   },
 
   async uploadImage(file: File): Promise<string> {
@@ -506,12 +509,12 @@ export const api = {
   async getCustomers(): Promise<Customer[]> {
     const { data: profiles } = await supabase.from('profiles').select('*')
     const { data: bookings } = await supabase.from('bookings').select('profile_id, vehicle_type_id, date')
-    
+
     return (profiles || []).map((p: any) => {
       const pBookings = (bookings || []).filter(b => b.profile_id === p.id)
       const vTypes = [...new Set(pBookings.map(b => b.vehicle_type_id))]
       const lastBooking = pBookings.sort((a, b) => b.date.localeCompare(a.date))[0]?.date || null
-      
+
       return {
         id: p.id,
         name: p.name,
@@ -526,13 +529,13 @@ export const api = {
 
   async createCustomer(customer: { name: string; email: string; phone: string }): Promise<Customer> {
     const email = customer.email.toLowerCase();
-    
+
     // Check if exists
     const { data: existingEmail } = await supabase.from('profiles').select('*').eq('email', email).single();
     if (existingEmail) {
       throw new Error('A customer with this email already exists.');
     }
-    
+
     const { data: existingPhone } = await supabase.from('profiles').select('*').eq('phone', customer.phone).single();
     if (existingPhone) {
       throw new Error('A customer with this phone number already exists.');
@@ -543,9 +546,9 @@ export const api = {
       email,
       phone: customer.phone
     }).select().single();
-    
+
     if (error) throw new Error(error.message);
-    
+
     return {
       id: data.id,
       name: data.name,
@@ -559,13 +562,13 @@ export const api = {
 
   async updateCustomer(id: string, customer: { name: string; email: string; phone: string; manualBookingCount?: number | null; manualLastBookingDate?: string | null }): Promise<void> {
     const email = customer.email.toLowerCase();
-    
+
     // Check if exists
     const { data: existingEmail } = await supabase.from('profiles').select('id').eq('email', email).single();
     if (existingEmail && existingEmail.id !== id) {
       throw new Error('A customer with this email already exists.');
     }
-    
+
     if (customer.phone && customer.phone.trim() !== '') {
       const { data: existingPhone } = await supabase.from('profiles').select('id').eq('phone', customer.phone.trim()).limit(1).maybeSingle();
       if (existingPhone && existingPhone.id !== id) {
@@ -591,7 +594,7 @@ export const api = {
 
   async customerSignup(customer: { name: string; email: string; phone: string; password: string }): Promise<void> {
     const email = customer.email.toLowerCase();
-    
+
     // Check if customer exists in profiles
     const { data: existingEmail } = await supabase.from('profiles').select('id').eq('email', email).single();
     if (existingEmail) {
@@ -607,7 +610,7 @@ export const api = {
       email,
       phone: customer.phone
     });
-    
+
     if (profileError) throw new Error(profileError.message);
   },
 
@@ -624,7 +627,7 @@ export const api = {
   async getCurrentUser(user: any): Promise<{ name: string; email: string; role: 'admin' | 'customer'; profileId?: string; phone?: string }> {
     const email = user.email?.toLowerCase() || '';
     const { data } = await supabase.from('profiles').select('id, name, phone').eq('email', email).limit(1).maybeSingle();
-    
+
     if (data) {
       return { name: data.name, email, role: 'customer', profileId: data.id, phone: data.phone || '' };
     }
@@ -727,7 +730,12 @@ export const api = {
   },
 
   async getNotifications(profileId: string): Promise<any[]> {
-    const { data, error } = await supabase.from('notifications').select('*').eq('profile_id', profileId).order('created_at', { ascending: false })
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*, notification_reactions(*)')
+      .or(`profile_id.eq.${profileId},profile_id.is.null,sender_id.eq.${profileId}`)
+      .order('created_at', { ascending: false })
+
     if (error) {
       console.warn("DB notifications read failed:", error.message)
       throw error
@@ -735,12 +743,20 @@ export const api = {
     return data || []
   },
 
-  async createNotification(profileId: string, title: string, message: string, type: 'info' | 'success' | 'warning' = 'info'): Promise<any> {
+  async createNotification(
+    profileId: string | null,
+    title: string,
+    message: string,
+    type: 'info' | 'success' | 'warning' = 'info',
+    senderId?: string | null
+  ): Promise<any> {
     const payload = {
       profile_id: profileId,
       title,
       message,
-      type
+      type,
+      sender_id: senderId || null,
+      status: 'sent'
     }
     try {
       const { data, error } = await supabase.from('notifications').insert(payload).select().single()
@@ -768,7 +784,91 @@ export const api = {
   },
 
   async markNotificationsRead(profileId: string): Promise<void> {
-    const { error } = await supabase.from('notifications').update({ read: true }).eq('profile_id', profileId)
+    const { error } = await supabase.from('notifications').update({ read: true, status: 'read' }).eq('profile_id', profileId)
     if (error) throw error
+  },
+
+  async updateNotificationStatus(id: string, status: 'sent' | 'delivered' | 'read'): Promise<void> {
+    const updates: any = { status }
+    if (status === 'read') updates.read = true
+    const { error } = await supabase.from('notifications').update(updates).eq('id', id)
+    if (error) throw error
+  },
+
+  async updateNotificationMessage(id: string, message: string): Promise<void> {
+    const { error } = await supabase.from('notifications').update({ message, status: 'delivered', read: false }).eq('id', id)
+    if (error) throw error
+  },
+
+  async toggleReaction(notificationId: string, profileId: string, emoji: string): Promise<void> {
+    try {
+      const { data: existing, error } = await supabase
+        .from('notification_reactions')
+        .select('id, emoji')
+        .eq('notification_id', notificationId)
+        .eq('user_id', profileId)
+        .maybeSingle()
+
+      if (error) throw error
+
+      if (existing) {
+        if (existing.emoji === emoji) {
+          // If clicking the same reaction, remove it
+          await supabase.from('notification_reactions').delete().eq('id', existing.id)
+        } else {
+          // If clicking a different reaction, update the existing one to the new emoji
+          await supabase.from('notification_reactions').update({ emoji }).eq('id', existing.id)
+        }
+      } else {
+        await supabase.from('notification_reactions').insert({
+          notification_id: notificationId,
+          user_id: profileId,
+          emoji
+        })
+      }
+    } catch (e) {
+      console.warn("toggleReaction failed in DB, updating local storage fallback:", e)
+
+      const toggleInList = (key: string) => {
+        const stored = localStorage.getItem(key)
+        if (!stored) return
+
+        let list = JSON.parse(stored)
+        let modified = false
+
+        list = list.map((n: any) => {
+          if (n.id === notificationId) {
+            modified = true
+            let reactions = n.notification_reactions || []
+
+            // Remove any existing reaction from this user
+            const existingIdx = reactions.findIndex((r: any) => r.user_id === profileId)
+
+            if (existingIdx >= 0) {
+              const prevEmoji = reactions[existingIdx].emoji
+              reactions.splice(existingIdx, 1)
+              // If it's a different emoji, add the new one
+              if (prevEmoji !== emoji) {
+                reactions.push({ notification_id: notificationId, user_id: profileId, emoji })
+              }
+            } else {
+              reactions.push({ notification_id: notificationId, user_id: profileId, emoji })
+            }
+
+            return { ...n, notification_reactions: reactions }
+          }
+          return n
+        })
+
+        if (modified) {
+          localStorage.setItem(key, JSON.stringify(list))
+        }
+      }
+
+      toggleInList(`notifications_${profileId}`)
+      toggleInList(`notifications_fallback_${profileId}`)
+      toggleInList('notifications_00000000-0000-0000-0000-000000000000')
+      toggleInList('notifications_fallback_admin@truckview.com.ng')
+    }
   },
 }

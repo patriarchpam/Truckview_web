@@ -28,6 +28,8 @@ export function AdminQuoteModal({ open, onClose, booking }: AdminQuoteModalProps
   const [comments, setComments] = useState('')
   const [salesTaxRate, setSalesTaxRate] = useState(0)
   const [otherFees, setOtherFees] = useState(0)
+  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'unpaid' | 'partial' | 'full' | ''>('')
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false)
   
   const [items, setItems] = useState<Omit<QuoteItem, 'id'>[]>([])
 
@@ -50,6 +52,8 @@ export function AdminQuoteModal({ open, onClose, booking }: AdminQuoteModalProps
         setComments(existing.comments)
         setSalesTaxRate(existing.salesTaxRate)
         setOtherFees(existing.otherFees)
+        setPaymentStatus(existing.paymentStatus || '')
+        setPaymentConfirmed(existing.paymentConfirmedByAdmin || false)
         setItems(existing.items)
       } else {
         setQuote(null)
@@ -63,6 +67,8 @@ export function AdminQuoteModal({ open, onClose, booking }: AdminQuoteModalProps
         setComments('')
         setSalesTaxRate(0)
         setOtherFees(0)
+        setPaymentStatus('')
+        setPaymentConfirmed(false)
         setItems([{ quantity: 1, description: 'Service Charge', unitPrice: 0, taxable: false }])
       }
     } catch (err) {
@@ -93,7 +99,9 @@ export function AdminQuoteModal({ open, onClose, booking }: AdminQuoteModalProps
         otherFees,
         total,
         comments,
-        status: quote?.status || 'sent'
+        status: quote?.status || 'sent',
+        paymentStatus: paymentStatus || undefined,
+        paymentConfirmedByAdmin: paymentConfirmed
       })
       onClose()
     } catch (err) {
@@ -125,16 +133,6 @@ export function AdminQuoteModal({ open, onClose, booking }: AdminQuoteModalProps
             <FileTextIcon size={16} className="mr-1" /> Preview PDF
           </Button>
           <div className="flex gap-2">
-            {quote?.paymentStatus && !quote?.paymentConfirmedByAdmin && (
-              <Button variant="primary" onClick={async () => {
-                try {
-                  await api.saveQuote({ ...quote, paymentConfirmedByAdmin: true } as any)
-                  await loadQuote(booking.id)
-                } catch (e) {
-                  alert('Failed to confirm payment')
-                }
-              }}>Confirm Payment</Button>
-            )}
             <Button variant="outline" onClick={onClose}>Cancel</Button>
             <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : (quote ? 'Update Quote' : 'Create Quote')}</Button>
           </div>
@@ -142,11 +140,34 @@ export function AdminQuoteModal({ open, onClose, booking }: AdminQuoteModalProps
       }
     >
       <div className="grid gap-6">
-        {quote?.paymentStatus && (
-          <div className="bg-accent-50/50 p-4 rounded-xl border border-accent-200 flex items-center justify-between">
+        {quote?.id && (
+          <div className="bg-surface-2 p-4 rounded-xl border border-line flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <p className="text-sm font-semibold text-ink">Payment Status: <span className="capitalize">{quote.paymentStatus}</span></p>
-              <p className="text-xs text-muted">{quote.paymentConfirmedByAdmin ? 'Confirmed by admin' : 'Awaiting confirmation'}</p>
+              <p className="text-sm font-semibold text-ink">Payment Tracking</p>
+              <p className="text-xs text-muted">Update payment status and confirm to notify customer.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <select
+                value={paymentStatus}
+                onChange={e => setPaymentStatus(e.target.value as any)}
+                className="px-3 py-1.5 bg-canvas border border-line rounded-lg text-sm focus:outline-none focus:border-accent-500"
+              >
+                <option value="">No Payment</option>
+                <option value="pending">Pending</option>
+                <option value="partial">Partial Payment</option>
+                <option value="full">Paid in Full</option>
+              </select>
+              {paymentStatus && (
+                <label className="flex items-center gap-2 text-sm font-medium text-ink">
+                  <input
+                    type="checkbox"
+                    checked={paymentConfirmed}
+                    onChange={e => setPaymentConfirmed(e.target.checked)}
+                    className="rounded text-accent-600 focus:ring-accent-500"
+                  />
+                  Confirmed
+                </label>
+              )}
             </div>
           </div>
         )}

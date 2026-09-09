@@ -8,13 +8,14 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useNotificationContext } from '../../contexts/NotificationContext'
 import { cn } from '../../utils/format'
 
 const nav = [
   { to: '/admin', icon: LayoutDashboardIcon, label: 'Dashboard', end: true },
   { to: '/admin/bookings', icon: CalendarIcon, label: 'Bookings' },
   { to: '/admin/customers', icon: UsersIcon, label: 'Customers' },
-  { to: '/admin/vehicle-types', icon: TruckIcon, label: 'Vehicles' },
+  { to: '/admin/vehicle-types', icon: TruckIcon, label: 'Car Brands' },
   { to: '/admin/services', icon: WrenchIcon, label: 'Services' },
   { to: '/admin/payments', icon: CreditCardIcon, label: 'Payments' },
   { to: '/admin/reviews', icon: StarIcon, label: 'Reviews' },
@@ -37,6 +38,7 @@ const settingsNav = [
 export function AdminLayout() {
   const { user, ready, logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
+  const { unreadCount } = useNotificationContext()
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -63,12 +65,17 @@ export function AdminLayout() {
           >
             <item.icon size={18} />
             {item.label}
+            {item.label === 'Notifications' && unreadCount > 0 && (
+              <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
           </NavLink>
         ))}
       </div>
-      
+
       <div className="pt-2 mt-2 border-t border-line">
-        <button 
+        <button
           onClick={() => setSettingsOpen(!settingsOpen)}
           className="flex items-center justify-between w-full rounded-lg px-3 py-2.5 text-sm font-medium text-ink-soft hover:bg-surface-2 hover:text-ink transition-colors"
         >

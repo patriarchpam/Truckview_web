@@ -16,31 +16,31 @@ export function AdminTrash() {
     // Fetch deleted bookings
     const { data: bData } = await supabase.from('bookings').select('*, profiles(name)').eq('is_deleted', true)
     if (bData) {
-      bData.forEach(b => items.push({ type: 'Booking', id: b.id, name: `Booking ${b.reference} by ${b.profiles?.name || 'Customer'}`, deletedAt: b.created_at ? formatShortDate(b.created_at) : 'Recently' }))
+      bData.forEach(b => items.push({ type: 'Booking', id: b.id, name: `Booking ${b.reference} by ${b.profiles?.name || 'Customer'}`, deletedAt: b.deleted_at ? formatShortDate(b.deleted_at) : (b.created_at ? formatShortDate(b.created_at) : 'Recently') }))
     }
 
     // Fetch deleted quotes
     const { data: qData } = await supabase.from('quotes').select('*').eq('is_deleted', true)
     if (qData) {
-      qData.forEach(q => items.push({ type: 'Quote', id: q.id, name: `Quote #${q.quotation_number}`, deletedAt: q.created_at ? formatShortDate(q.created_at) : 'Recently' }))
+      qData.forEach(q => items.push({ type: 'Quote', id: q.id, name: `Quote #${q.quotation_number}`, deletedAt: q.deleted_at ? formatShortDate(q.deleted_at) : (q.created_at ? formatShortDate(q.created_at) : 'Recently') }))
     }
     
-    // Fetch deleted vehicle types
+    // Fetch deleted car brands (vehicle types)
     const { data: vData } = await supabase.from('vehicle_types').select('*').eq('is_deleted', true)
     if (vData) {
-      vData.forEach(v => items.push({ type: 'Vehicle Type', id: v.id, name: v.name, deletedAt: 'Recently' }))
+      vData.forEach(v => items.push({ type: 'Car Brand', id: v.id, name: v.name, deletedAt: v.deleted_at ? formatShortDate(v.deleted_at) : 'Recently' }))
     }
 
     // Fetch deleted services
     const { data: sData } = await supabase.from('services').select('*').eq('is_deleted', true)
     if (sData) {
-      sData.forEach(s => items.push({ type: 'Service', id: s.id, name: s.name, deletedAt: 'Recently' }))
+      sData.forEach(s => items.push({ type: 'Service', id: s.id, name: s.name, deletedAt: s.deleted_at ? formatShortDate(s.deleted_at) : 'Recently' }))
     }
 
     // Fetch deleted customer profiles
     const { data: cData } = await supabase.from('profiles').select('*').eq('is_deleted', true)
     if (cData) {
-      cData.forEach(c => items.push({ type: 'Customer Profile', id: c.id, name: `${c.name} (${c.email})`, deletedAt: 'Recently' }))
+      cData.forEach(c => items.push({ type: 'Customer Profile', id: c.id, name: `${c.name} (${c.email})`, deletedAt: c.deleted_at ? formatShortDate(c.deleted_at) : 'Recently' }))
     }
 
     setDeletedItems(items)
@@ -55,7 +55,7 @@ export function AdminTrash() {
     let table = ''
     if (type === 'Booking') table = 'bookings'
     else if (type === 'Quote') table = 'quotes'
-    else if (type === 'Vehicle Type') table = 'vehicle_types'
+    else if (type === 'Car Brand') table = 'vehicle_types'
     else if (type === 'Service') table = 'services'
     else if (type === 'Customer Profile') table = 'profiles'
     else return
@@ -75,7 +75,7 @@ export function AdminTrash() {
     let table = ''
     if (type === 'Booking') table = 'bookings'
     else if (type === 'Quote') table = 'quotes'
-    else if (type === 'Vehicle Type') table = 'vehicle_types'
+    else if (type === 'Car Brand') table = 'vehicle_types'
     else if (type === 'Service') table = 'services'
     else if (type === 'Customer Profile') table = 'profiles'
     else return

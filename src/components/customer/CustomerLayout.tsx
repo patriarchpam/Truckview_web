@@ -7,8 +7,10 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useNotificationContext } from '../../contexts/NotificationContext'
 import { cn } from '../../utils/format'
 import { Chatbot } from '../Chatbot'
+import { EmergencyButton } from '../EmergencyButton'
 
 const nav = [
   { to: '/dashboard', icon: LayoutDashboardIcon, label: 'Home', end: true },
@@ -27,6 +29,7 @@ const profileNav = [
 export function CustomerLayout() {
   const { user, ready, logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
+  const { unreadCount } = useNotificationContext()
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -53,6 +56,11 @@ export function CustomerLayout() {
           >
             <item.icon size={18} />
             {item.label}
+            {item.label === 'Notifications' && unreadCount > 0 && (
+              <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
           </NavLink>
         ))}
       </div>
@@ -176,6 +184,8 @@ export function CustomerLayout() {
         {/* Content area */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-8 relative min-w-0 overflow-x-hidden">
           <Outlet />
+          
+          <EmergencyButton />
           <Chatbot />
         </main>
       </div>
