@@ -82,7 +82,10 @@ export function GlobalNotificationListener() {
                   // Clean up set if it gets too large
                   if (toastedIds.size > 100) {
                     const iterator = toastedIds.values()
-                    for (let i = 0; i < 50; i++) toastedIds.delete(iterator.next().value)
+                    for (let i = 0; i < 50; i++) {
+                      const val = iterator.next().value
+                      if (val !== undefined) toastedIds.delete(val)
+                    }
                   }
                 }
 
